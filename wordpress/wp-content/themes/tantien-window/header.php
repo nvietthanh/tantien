@@ -57,7 +57,7 @@
 					'container'      => false,
 					'menu_class'     => '',
 					'fallback_cb'    => 'ttw_primary_menu_fallback',
-					'depth'          => 1,
+					'depth'          => 2,
 				) );
 				?>
 			</div>

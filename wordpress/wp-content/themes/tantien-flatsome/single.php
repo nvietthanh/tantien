@@ -52,7 +52,9 @@ get_header();
 			</main>
 
 			<aside class="ttw-sidebar">
-				<?php if ( is_active_sidebar( 'sidebar-blog' ) ) : ?>
+				<?php if ( is_active_sidebar( 'sidebar-main' ) ) : ?>
+					<?php dynamic_sidebar( 'sidebar-main' ); ?>
+				<?php elseif ( is_active_sidebar( 'sidebar-blog' ) ) : ?>
 					<?php dynamic_sidebar( 'sidebar-blog' ); ?>
 				<?php endif; ?>
 			</aside>

@@ -7,7 +7,54 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TTW_FLATSOME_VERSION', '1.0.2' );
+define( 'TTW_FLATSOME_VERSION', '1.1.1' );
+
+
+
+
+
+/**
+ * Đăng ký query var cho phân trang sản phẩm
+ */
+add_filter( 'query_vars', function( $vars ) {
+	$vars[] = 'page';
+	$vars[] = 'paged';
+	return $vars;
+} );
+
+/**
+ * Filter ép sử dụng template custom cho Single Product và Category Tuyển Dụng
+ */
+add_filter( 'template_include', function( $template ) {
+	if ( is_page( 'tuyen-dung' ) || is_category( 'tuyen-dung' ) || ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $_SERVER['REQUEST_URI'], '/tuyen-dung' ) ) ) {
+		$custom_careers = get_stylesheet_directory() . '/page-tuyen-dung.php';
+		if ( file_exists( $custom_careers ) ) {
+			return $custom_careers;
+		}
+	}
+
+	if ( is_singular( 'product' ) || ( function_exists( 'is_product' ) && is_product() ) ) {
+		$custom_single = get_stylesheet_directory() . '/woocommerce/single-product.php';
+		if ( file_exists( $custom_single ) ) {
+			return $custom_single;
+		}
+	}
+	return $template;
+}, 99 );
+
+
+// Đăng ký query_vars phân trang
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -38,7 +85,15 @@ function ttw_consult_url() {
 }
 
 function ttw_shop_url() {
-	return class_exists( 'WooCommerce' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/san-pham-2/' );
+	$page = get_page_by_path( 'san-pham-2' );
+	if ( $page ) {
+		return get_permalink( $page );
+	}
+	$page = get_page_by_path( 'san-pham' );
+	if ( $page ) {
+		return get_permalink( $page );
+	}
+	return home_url( '/san-pham-2/' );
 }
 
 function ttw_projects_url() {
@@ -60,7 +115,7 @@ function ttw_news_url() {
 function ttw_primary_menu_fallback() {
 	$items = array(
 		array( home_url( '/' ), __( 'Trang chủ', 'tantien-window' ) ),
-		array( home_url( '/gioi-thieu/' ), __( 'Giới thiệu', 'tantien-window' ) ),
+		array( home_url( '/gioi-thieu/' ), __( 'Về chúng tôi', 'tantien-window' ) ),
 		array( ttw_shop_url(), __( 'Sản phẩm', 'tantien-window' ) ),
 		array( home_url( '/bao-gia/' ), __( 'Báo giá', 'tantien-window' ) ),
 		array( ttw_projects_url(), __( 'Công trình', 'tantien-window' ) ),
@@ -127,7 +182,197 @@ register_nav_menus( array(
 ) );
 
 
+// Tự động chèn Submenu cho "Sản phẩm" (6 sp), "Công trình" (3 dự án), và "Tin tức" (Tin tức & Tin tuyển dụng)
+add_filter( 'wp_nav_menu_objects', function( $items, $args ) {
+	if ( empty( $items ) ) {
+		return $items;
+	}
+
+	$product_menu_parent_id = 0;
+	$project_menu_parent_id = 0;
+	$news_menu_parent_id    = 0;
+
+	foreach ( $items as $item ) {
+		$title_upper = mb_strtoupper( trim( $item->title ), 'UTF-8' );
+		if ( $title_upper === 'SẢN PHẨM' || $item->object_id == 2466 ) {
+			$product_menu_parent_id = $item->ID;
+		} elseif ( $title_upper === 'CÔNG TRÌNH' ) {
+			$project_menu_parent_id = $item->ID;
+		} elseif ( strpos( $title_upper, 'TIN TỨC' ) !== false || $item->object_id == 320 ) {
+			$news_menu_parent_id = $item->ID;
+		}
+	}
+
+	if ( ! $product_menu_parent_id && ! $project_menu_parent_id && ! $news_menu_parent_id ) {
+		return $items;
+	}
+
+	// Truy vấn 6 sản phẩm tạo mới nhất
+	$latest_products = array();
+	if ( $product_menu_parent_id ) {
+		$latest_products = get_posts( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 6,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		) );
+	}
+
+	$new_items = array();
+	$order     = 1000;
+
+	foreach ( $items as $item ) {
+		$new_items[] = $item;
+
+		// 1. Submenu cho SẢN PHẨM (6 sản phẩm)
+		if ( $item->ID == $product_menu_parent_id && ! empty( $latest_products ) ) {
+			if ( ! in_array( 'menu-item-has-children', $item->classes ) ) {
+				$item->classes[] = 'menu-item-has-children';
+			}
+
+			foreach ( $latest_products as $prod ) {
+				$order++;
+				$sub_item                  = new stdClass();
+				$sub_item->ID              = 9999000 + $prod->ID;
+				$sub_item->db_id           = $sub_item->ID;
+				$sub_item->title           = get_the_title( $prod->ID );
+				$sub_item->url             = get_permalink( $prod->ID );
+				$sub_item->menu_item_parent = (string) $product_menu_parent_id;
+				$sub_item->post_parent     = 0;
+				$sub_item->type            = 'post_type';
+				$sub_item->object          = 'product';
+				$sub_item->object_id       = (string) $prod->ID;
+				$sub_item->type_label      = __( 'Sản phẩm', 'tantien-window' );
+				$sub_item->classes         = array( 'menu-item', 'menu-item-type-post_type', 'menu-item-object-product' );
+				$sub_item->target          = '';
+				$sub_item->attr_title      = '';
+				$sub_item->description     = '';
+				$sub_item->xfn             = '';
+				$sub_item->status          = 'publish';
+				$sub_item->menu_order      = $order;
+
+				$new_items[] = $sub_item;
+			}
+		}
+
+		// 2. Submenu cho CÔNG TRÌNH (lấy đúng 3 phần tử công trình tiêu biểu giống mảng dự án tantien-window)
+		if ( $item->ID == $project_menu_parent_id ) {
+			if ( ! in_array( 'menu-item-has-children', $item->classes ) ) {
+				$item->classes[] = 'menu-item-has-children';
+			}
+
+			// Mảng 3 công trình tiêu biểu mẫu từ theme tantien-window
+			$demo_projects = array(
+				array( 'title' => 'Ocean Villa Retreat', 'cat' => 'Biệt thự cao cấp', 'desc' => 'Đà Nẵng • Hệ cửa lùa panorama' ),
+				array( 'title' => 'Tech Hub Tower', 'cat' => 'Văn phòng', 'desc' => 'TP.HCM • Vách kính mặt dựng' ),
+				array( 'title' => 'Skyrise Penthouse', 'cat' => 'Căn hộ', 'desc' => 'Hà Nội • Cửa sổ cách âm' ),
+			);
+
+			// Nếu có bài viết công trình trong DB thì lấy 3 bài thực tế, nếu không dùng 3 dự án mẫu
+			$real_projects = get_posts( array(
+				'post_type'      => 'post',
+				'post_status'    => 'publish',
+				'posts_per_page' => 3,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			) );
+
+			if ( ! empty( $real_projects ) ) {
+				foreach ( $real_projects as $proj ) {
+					$order++;
+					$sub_item                  = new stdClass();
+					$sub_item->ID              = 8888000 + $proj->ID;
+					$sub_item->db_id           = $sub_item->ID;
+					$sub_item->title           = get_the_title( $proj->ID );
+					$sub_item->url             = get_permalink( $proj->ID );
+					$sub_item->menu_item_parent = (string) $project_menu_parent_id;
+					$sub_item->post_parent     = 0;
+					$sub_item->type            = 'post_type';
+					$sub_item->object          = $proj->post_type;
+					$sub_item->object_id       = (string) $proj->ID;
+					$sub_item->type_label      = __( 'Công trình', 'tantien-window' );
+					$sub_item->classes         = array( 'menu-item', 'menu-item-type-post_type' );
+					$sub_item->target          = '';
+					$sub_item->attr_title      = '';
+					$sub_item->description     = '';
+					$sub_item->xfn             = '';
+					$sub_item->status          = 'publish';
+					$sub_item->menu_order      = $order;
+
+					$new_items[] = $sub_item;
+				}
+			} else {
+				foreach ( $demo_projects as $idx => $proj ) {
+					$order++;
+					$sub_item                  = new stdClass();
+					$sub_item->ID              = 8888000 + $idx;
+					$sub_item->db_id           = $sub_item->ID;
+					$sub_item->title           = $proj['title'];
+					$sub_item->url             = home_url( '/nhung-cong-trinh-tieu-bieu/' );
+					$sub_item->menu_item_parent = (string) $project_menu_parent_id;
+					$sub_item->post_parent     = 0;
+					$sub_item->type            = 'custom';
+					$sub_item->object          = 'custom';
+					$sub_item->object_id       = '0';
+					$sub_item->type_label      = __( 'Công trình', 'tantien-window' );
+					$sub_item->classes         = array( 'menu-item', 'menu-item-type-custom' );
+					$sub_item->target          = '';
+					$sub_item->attr_title      = '';
+					$sub_item->description     = '';
+					$sub_item->xfn             = '';
+					$sub_item->status          = 'publish';
+					$sub_item->menu_order      = $order;
+
+					$new_items[] = $sub_item;
+				}
+			}
+		}
+
+		// 3. Submenu cho TIN TỨC (2 trang: 1. Tin tức, 2. Tin tuyển dụng)
+		if ( $item->ID == $news_menu_parent_id ) {
+			if ( ! in_array( 'menu-item-has-children', $item->classes ) ) {
+				$item->classes[] = 'menu-item-has-children';
+			}
+
+			$news_sub_items = array(
+				array( 'title' => 'Tin tức & Bài viết', 'url' => home_url( '/tin-tuc/' ) ),
+				array( 'title' => 'Tin tuyển dụng', 'url' => home_url( '/tuyen-dung/' ) ),
+			);
+
+			foreach ( $news_sub_items as $idx => $nsub ) {
+				$order++;
+				$sub_item                  = new stdClass();
+				$sub_item->ID              = 7777000 + $idx;
+				$sub_item->db_id           = $sub_item->ID;
+				$sub_item->title           = $nsub['title'];
+				$sub_item->url             = $nsub['url'];
+				$sub_item->menu_item_parent = (string) $news_menu_parent_id;
+				$sub_item->post_parent     = 0;
+				$sub_item->type            = 'custom';
+				$sub_item->object          = 'custom';
+				$sub_item->object_id       = '0';
+				$sub_item->type_label      = __( 'Trang', 'tantien-window' );
+				$sub_item->classes         = array( 'menu-item', 'menu-item-type-custom' );
+				$sub_item->target          = '';
+				$sub_item->attr_title      = '';
+				$sub_item->description     = '';
+				$sub_item->xfn             = '';
+				$sub_item->status          = 'publish';
+				$sub_item->menu_order      = $order;
+
+				$new_items[] = $sub_item;
+			}
+		}
+
+	}
+
+	return $new_items;
+}, 10, 2 );
+
+
 // 1. Tắt Gutenberg editor để ưu tiên Classic Editor / UX Builder giống theme dich-vu-bao-ve
+
 add_filter( 'use_block_editor_for_post', '__return_false' );
 
 // 2. Enqueue Parent (Flatsome) & Child Stylesheets + Custom JS
@@ -159,8 +404,28 @@ function ttw_flatsome_enqueue_scripts() {
 add_action( 'wp_enqueue_scripts', 'ttw_flatsome_enqueue_scripts', 9999 );
 
 
+// Hàm nạp danh sách các Bài Viết từ Database cho ô Select của UX Builder
+function ttw_get_posts_options_array() {
+	$options = array( '' => __( '-- Chọn bài viết --' ) );
+	$posts = get_posts( array(
+		'post_type'      => 'post',
+		'post_status'    => 'publish',
+		'posts_per_page' => 100,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	) );
+	if ( ! empty( $posts ) ) {
+		foreach ( $posts as $p ) {
+			$options[ $p->ID ] = $p->post_title . ' (ID: ' . $p->ID . ')';
+		}
+	}
+	return $options;
+}
+
+
 // 3. Đăng ký các Shortcode & UX Builder Elements cho Tân Tiến Window với đầy đủ Options chỉnh sửa
 add_action( 'ux_builder_setup', function() {
+
 	add_ux_builder_shortcode( 'ttw_hero', array(
 		'type'      => 'container',
 		'name'      => __( 'Tân Tiến - Hero Banner (Khối Mẹ)' ),
@@ -365,6 +630,17 @@ add_action( 'ux_builder_setup', function() {
 				'description' => __( 'Ví dụ: 80px 0, 100px 20px...' ),
 				'default'     => '',
 			),
+			'text_link' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Tên nút liên kết (Ví dụ: CÁC GIẢI PHÁP TÂN TIẾN WINDOW)' ),
+				'default' => 'CÁC GIẢI PHÁP TÂN TIẾN WINDOW',
+			),
+			'text_link_url' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Đường dẫn liên kết (URL)' ),
+				'default' => '/gioi-thieu/',
+			),
+
 			'custom_css' => array(
 				'type'        => 'textarea',
 				'heading'     => __( 'Mã CSS riêng cho toàn bộ Khối Giới Thiệu' ),
@@ -377,7 +653,7 @@ add_action( 'ux_builder_setup', function() {
 				'name'    => __( 'Mặc định' ),
 				'content' => '[ttw_about]
 [ttw_about_image]
-[ttw_about_eyebrow text="About Tan Tien Window"]
+[ttw_about_eyebrow text="GIẢI PHÁP TÂN TIẾN WINDOW"]
 [ttw_about_title text="Kiến tạo không gian từ những mảng kính"]
 [ttw_about_desc text="Chúng tôi tập trung vào sự hoàn mỹ trong từng chi tiết nhôm kính, mang đến giải pháp mặt đứng, cửa và vách ngăn tối ưu cho không gian kiến trúc đương đại."]
 [/ttw_about]',
@@ -396,8 +672,9 @@ add_action( 'ux_builder_setup', function() {
 			'text' => array(
 				'type'    => 'textfield',
 				'heading' => __( 'Nội dung Dòng Phụ' ),
-				'default' => 'About Tan Tien Window',
+				'default' => 'GIẢI PHÁP TÂN TIẾN WINDOW',
 			),
+
 			'color' => array(
 				'type'    => 'colorpicker',
 				'heading' => __( 'Màu chữ' ),
@@ -510,14 +787,21 @@ add_action( 'ux_builder_setup', function() {
 
 
 	add_ux_builder_shortcode( 'ttw_products', array(
-		'name'     => __( 'Tân Tiến - Sản Phẩm Nổi Bật' ),
+		'name'     => __( 'Tân Tiến - Chúng tôi cung cấp' ),
 		'category' => __( 'Tân Tiến Window' ),
 		'options'  => array(
 			'heading' => array(
 				'type'    => 'textfield',
 				'heading' => __( 'Tiêu đề khối' ),
-				'default' => 'Sản phẩm nổi bật',
+				'default' => 'Chúng tôi cung cấp',
 			),
+			'desc' => array(
+				'type'        => 'textarea',
+				'heading'     => __( 'Mô tả ngắn bên dưới tiêu đề (Chữ mờ)' ),
+				'default'     => 'Tân Tiến Window cung cấp các giải pháp cửa nhôm kính, cửa kính, vách kính, mặt dựng và kính kiến trúc cho nhà ở, biệt thự, văn phòng và công trình thương mại.',
+			),
+
+
 			'count' => array(
 				'type'    => 'textfield',
 				'heading' => __( 'Số lượng sản phẩm' ),
@@ -551,28 +835,29 @@ add_action( 'ux_builder_setup', function() {
 
 	add_ux_builder_shortcode( 'ttw_values', array(
 		'type'      => 'container',
-		'name'      => __( 'Tân Tiến - Giá Trị Cốt Lõi' ),
+		'name'      => __( 'Tân Tiến - Năng lực của chúng tôi' ),
 		'category'  => __( 'Tân Tiến Window' ),
 		'allow'     => array( 'ttw_value_item' ),
 		'options'   => array(
 			'heading' => array(
 				'type'    => 'textfield',
 				'heading' => __( 'Tiêu đề khối' ),
-				'default' => 'Giá trị cốt lõi',
+				'default' => 'NĂNG LỰC CỦA CHÚNG TÔI',
 			),
 		),
 		'presets'   => array(
 			array(
 				'name'    => __( 'Mặc định (4 mục)' ),
-				'content' => '[ttw_values heading="Giá trị cốt lõi"]
-[ttw_value_item num="01" title="Chất lượng" desc="Cam kết sử dụng vật liệu cao cấp, đảm bảo độ bền và tính thẩm mỹ lâu dài cho mọi công trình."]
-[ttw_value_item num="02" title="Kinh nghiệm" desc="Đội ngũ kỹ thuật viên lành nghề với hơn 10 năm kinh nghiệm trong lĩnh vực nhôm kính."]
-[ttw_value_item num="03" title="Thi công" desc="Quy trình lắp đặt chuẩn xác, an toàn, đảm bảo tiến độ và vệ sinh công trình."]
-[ttw_value_item num="04" title="Đồng hành" desc="Chính sách bảo hành dài hạn, hỗ trợ kỹ thuật nhanh chóng và tận tâm."]
+				'content' => '[ttw_values heading="NĂNG LỰC CỦA CHÚNG TÔI"]
+[ttw_value_item num="01" title="TƯ VẤN & GIẢI PHÁP" desc="Phân tích nhu cầu, kiến trúc và điều kiện thực tế để đề xuất cấu hình nhôm kính phù hợp."]
+[ttw_value_item num="02" title="THIẾT KẾ & KỸ THUẬT" desc="Triển khai bản vẽ, cấu tạo và giải pháp kỹ thuật đáp ứng yêu cầu thẩm mỹ và công năng."]
+[ttw_value_item num="03" title="SẢN XUẤT" desc="Gia công nhôm kính tại nhà máy với quy trình kiểm soát chất lượng trong từng công đoạn."]
+[ttw_value_item num="04" title="THI CÔNG" desc="Đội ngũ kỹ thuật trực tiếp lắp đặt, đảm bảo độ chính xác, an toàn và tiến độ công trình."]
 [/ttw_values]',
 			),
 		),
 	) );
+
 
 	add_ux_builder_shortcode( 'ttw_value_item', array(
 		'name'      => __( 'Mục Giá Trị' ),
@@ -600,13 +885,57 @@ add_action( 'ux_builder_setup', function() {
 
 
 	add_ux_builder_shortcode( 'ttw_projects', array(
-		'name'     => __( 'Tân Tiến - Công Trình Tiêu Biểu' ),
-		'category' => __( 'Tân Tiến Window' ),
-		'options'  => array(
-			'heading' => array( 'type' => 'textfield', 'heading' => 'Tiêu đề khối', 'default' => 'Công trình tiêu biểu' ),
-			'desc'    => array( 'type' => 'textfield', 'heading' => 'Mô tả ngắn', 'default' => 'Những công trình thể hiện chất lượng và thẩm mỹ trong từng chi tiết.' ),
+		'name'      => __( 'Tân Tiến - Công Trình Tiêu Biểu', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 10,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'heading' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Tiêu đề khối' ),
+				'default' => 'Công trình tiêu biểu',
+			),
+			'desc' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Mô tả ngắn' ),
+				'default' => 'Những công trình thể hiện chất lượng và thẩm mỹ trong từng chi tiết.',
+			),
+			'ids' => array(
+				'type'        => 'select',
+				'heading'     => __( 'Chọn bài viết cụ thể (Tối đa 3 bài)' ),
+				'description' => __( 'Nhấp chọn tối đa 3 bài viết mong muốn hiển thị theo đúng thứ tự nhấp chọn.' ),
+				'config'      => array(
+					'multiple'    => true,
+					'maxSelect'   => 3,
+					'max_items'   => 3,
+					'placeholder' => __( 'Chọn tối đa 3 bài viết...' ),
+				),
+				'options'     => ttw_get_posts_options_array(),
+				'default'     => '',
+			),
+			'orderby' => array(
+				'type'    => 'select',
+				'heading' => __( 'Sắp xếp theo' ),
+				'default' => 'date',
+				'options' => array(
+					'date'     => __( 'Mới nhất / Ngày đăng' ),
+					'title'    => __( 'Tiêu đề bài viết' ),
+					'rand'     => __( 'Ngẫu nhiên' ),
+					'post__in' => __( 'Theo thứ tự ID nhập ở trên' ),
+				),
+			),
+			'order' => array(
+				'type'    => 'select',
+				'heading' => __( 'Thứ tự sắp xếp' ),
+				'default' => 'DESC',
+				'options' => array(
+					'DESC' => __( 'Giảm dần (Mới nhất / Z-A)' ),
+					'ASC'  => __( 'Tăng dần (Cũ nhất / A-Z)' ),
+				),
+			),
 		),
 	) );
+
 
 	add_ux_builder_shortcode( 'ttw_process', array(
 		'type'      => 'container',
@@ -778,11 +1107,14 @@ add_action( 'ux_builder_setup', function() {
 		),
 		'presets'   => array(
 			array(
-				'name'    => __( 'Mặc định (3 đánh giá)' ),
+				'name'    => __( 'Mặc định (6 đánh giá)' ),
 				'content' => '[ttw_testimonials heading="Góc nhìn người tiêu dùng" desc="Sự hài lòng của khách hàng là minh chứng rõ nét nhất cho chất lượng dịch vụ của chúng tôi."]
-[ttw_testimonial_item author="Anh Minh Tuấn" role="Chủ đầu tư biệt thự Vinhomes" quote="Tôi rất ấn tượng với sự chuyên nghiệp của đội ngũ Tân Tiến. Hệ thống cửa nhôm Xingfa được lắp đặt hoàn hảo, cách âm cực tốt và mang lại vẻ đẹp hiện đại cho ngôi nhà."]
-[ttw_testimonial_item author="Chị Lan Hương" role="Giám đốc dự án Tech Office" quote="Vách kính mặt dựng cho tòa nhà văn phòng của chúng tôi được thi công đúng tiến độ, chất lượng kính tuyệt vời. Dịch vụ hậu mãi cũng rất tận tình."]
-[ttw_testimonial_item author="Anh Hoàng Quân" role="Quản lý dự án Ocean Resort" quote="Tân Tiến Window đã tư vấn giải pháp lan can kính rất phù hợp với thiết kế tổng thể của resort. Khách hàng của chúng tôi rất thích không gian mở này."]
+[ttw_testimonial_item author="Anh Minh Tuấn" role="Chủ đầu tư biệt thự Vinhomes" quote="Tôi rất ấn tượng với sự chuyên nghiệp của đội ngũ Tân Tiến. Hệ thống cửa nhôm Xingfa được lắp đặt hoàn hảo, cách âm cực tốt và mang lại vẻ đẹp hiện đại cho ngôi nhà." image="2403"]
+[ttw_testimonial_item author="Chị Lan Hương" role="Giám đốc dự án Tech Office" quote="Vách kính mặt dựng cho tòa nhà văn phòng của chúng tôi được thi công đúng tiến độ, chất lượng kính tuyệt vời. Dịch vụ hậu mãi cũng rất tận tình." image="2419"]
+[ttw_testimonial_item author="Anh Hoàng Quân" role="Quản lý dự án Ocean Resort" quote="Tân Tiến Window đã tư vấn giải pháp lan can kính rất phù hợp với thiết kế tổng thể của resort. Khách hàng của chúng tôi rất thích không gian mở này." image="2418"]
+[ttw_testimonial_item author="Chị Thu Trang" role="Chủ căn hộ Penthouse Landmark" quote="Hệ cửa lùa khoang kính mở rộng tối đa tầm nhìn tuyệt đẹp. Kỹ thuật thi công lắp đặt vô cùng tỉ mỉ và chuyên nghiệp." image="2417"]
+[ttw_testimonial_item author="Anh Đức Nam" role="Chủ thầu thi công Villa Thảo Điền" quote="Sản phẩm nhôm kính Tân Tiến luôn đúng tiêu chuẩn kỹ thuật khắt khe, phụ kiện cao cấp và bàn giao đúng hẹn." image="2416"]
+[ttw_testimonial_item author="Anh Quốc Bảo" role="Giám đốc chuỗi Showroom Auto" quote="Mặt dựng kính khung nhôm cao cấp tạo nên diện mạo sang trọng vượt trội cho toàn bộ hệ thống đại lý của chúng tôi." image="2415"]
 [/ttw_testimonials]',
 			),
 		),
@@ -794,6 +1126,10 @@ add_action( 'ux_builder_setup', function() {
 		'require'   => array( 'ttw_testimonials' ),
 		'wrap'      => false,
 		'options'   => array(
+			'image' => array(
+				'type'    => 'image',
+				'heading' => __( 'Ảnh công trình thực tế (Nền card)' ),
+			),
 			'author' => array(
 				'type'    => 'textfield',
 				'heading' => __( 'Tên khách hàng' ),
@@ -812,11 +1148,10 @@ add_action( 'ux_builder_setup', function() {
 		),
 	) );
 
+
 	add_ux_builder_shortcode( 'ttw_news', array(
-		'type'      => 'container',
 		'name'      => __( 'Tân Tiến - Tin Tức & Kiến Thức' ),
 		'category'  => __( 'Tân Tiến Window' ),
-		'allow'     => array( 'ttw_news_item_select' ),
 		'options'   => array(
 			'heading' => array(
 				'type'    => 'textfield',
@@ -825,8 +1160,8 @@ add_action( 'ux_builder_setup', function() {
 			),
 			'count' => array(
 				'type'        => 'textfield',
-				'heading'     => __( 'Số lượng lấy bài (Khi không chọn bài cụ thể)' ),
-				'description' => __( 'Số bài tự động hiển thị khi bạn không thêm mục bài viết chỉ định.' ),
+				'heading'     => __( 'Số lượng bài viết' ),
+				'description' => __( 'Số bài viết hiển thị.' ),
 				'default'     => '3',
 			),
 			'orderby' => array(
@@ -851,41 +1186,351 @@ add_action( 'ux_builder_setup', function() {
 				),
 			),
 		),
-		'presets'   => array(
-			array(
-				'name'    => __( 'Mặc định (3 bài mới nhất)' ),
-				'content' => '[ttw_news heading="Tin tức & Kiến thức" count="3"][/ttw_news]',
+	) );
+
+	// 10. Shortcode Products Hero (Container)
+	add_ux_builder_shortcode( 'ttw_products_hero', array(
+		'name'      => __( 'TTW - Khối Banner Sản Phẩm (Hero)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 10,
+		'type'      => 'container',
+		'allow'     => array( 'ttw_products_title', 'ttw_products_subtitle' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(),
+	) );
+
+	// 11. Shortcode Products Title
+	add_ux_builder_shortcode( 'ttw_products_title', array(
+		'name'      => __( 'TTW - Tiêu Đề Trang Sản Phẩm', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 11,
+		'require'   => array( 'ttw_products_hero' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Nội dung tiêu đề' ),
+				'default' => 'SẢN PHẨM',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
+				'default' => '',
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ (ví dụ: 48px, 3.5rem)' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
 			),
 		),
 	) );
 
-	add_ux_builder_shortcode( 'ttw_news_item_select', array(
-		'name'      => __( 'Bài Viết Chỉ Định' ),
-		'category'  => __( 'Tân Tiến Window' ),
-		'require'   => array( 'ttw_news' ),
-		'wrap'      => false,
+	// 12. Shortcode Products Subtitle
+	add_ux_builder_shortcode( 'ttw_products_subtitle', array(
+		'name'      => __( 'TTW - Phụ Đề Trang Sản Phẩm', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 12,
+		'require'   => array( 'ttw_products_hero' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
 		'options'   => array(
-			'post_id' => array(
-				'type'    => 'select',
-				'heading' => __( 'Chọn Bài Viết Hiển Thị' ),
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Nội dung phụ đề' ),
+				'default' => 'GIẢI PHÁP NHÔM KÍNH CHO KIẾN TRÚC HIỆN ĐẠI',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
 				'default' => '',
-				'options' => ( function() {
-					$opts = array( '' => __( '-- Chọn bài viết --' ) );
-					$posts = get_posts( array(
-						'numberposts' => 100,
-						'post_status' => 'publish',
-						'orderby'     => 'date',
-						'order'       => 'DESC',
-					) );
-					foreach ( $posts as $p ) {
-						$opts[ $p->ID ] = $p->post_title;
-					}
-					return $opts;
-				} )(),
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ (ví dụ: 16px, 1.2rem)' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
+			),
+		),
+	) );
+
+
+	// 13. Shortcode Product Archive (Danh sách sản phẩm Figma + Lọc DB)
+	add_ux_builder_shortcode( 'ttw_product_archive', array(
+		'name'      => __( 'TTW - Danh Sách Sản Phẩm (Bento + Lọc DB)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 13,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'count' => array(
+				'type'        => 'slider',
+				'heading'     => __( 'Số lượng sản phẩm hiển thị / trang' ),
+				'description' => __( 'Kéo chọn số lượng sản phẩm hiển thị trên 1 trang.' ),
+				'default'     => '6',
+				'max'         => '24',
+				'min'         => '3',
+				'step'        => '3',
+			),
+			'posts_per_page' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Hoặc nhập số lượng' ),
+				'default' => '6',
+			),
+			'orderby' => array(
+				'type'    => 'select',
+				'heading' => __( 'Sắp xếp theo' ),
+				'default' => 'date',
+				'options' => array(
+					'date'       => __( 'Mới nhất / Ngày đăng' ),
+					'title'      => __( 'Tên sản phẩm (A-Z / Z-A)' ),
+					'modified'   => __( 'Thời gian cập nhật' ),
+					'rand'       => __( 'Ngẫu nhiên' ),
+					'menu_order' => __( 'Thứ tự tùy chỉnh' ),
+				),
+			),
+			'order' => array(
+				'type'    => 'select',
+				'heading' => __( 'Thứ tự sắp xếp' ),
+				'default' => 'DESC',
+				'options' => array(
+					'DESC' => __( 'Giảm dần (Mới nhất / Z -> A)' ),
+					'ASC'  => __( 'Tăng dần (Cũ nhất / A -> Z)' ),
+				),
+			),
+		),
+	) );
+
+	// 14. Shortcode Projects Hero (Container)
+	add_ux_builder_shortcode( 'ttw_projects_hero', array(
+		'name'      => __( 'TTW - Khối Banner Công Trình (Hero)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 14,
+		'type'      => 'container',
+		'allow'     => array( 'ttw_projects_title', 'ttw_projects_subtitle' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(),
+	) );
+
+	// 15. Shortcode Projects Title
+	add_ux_builder_shortcode( 'ttw_projects_title', array(
+		'name'      => __( 'TTW - Tiêu Đề Trang Công Trình', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 15,
+		'require'   => array( 'ttw_projects_hero' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Nội dung tiêu đề' ),
+				'default' => 'CÔNG TRÌNH TIÊU BIỂU',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
+				'default' => '',
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ (ví dụ: 64px, 4rem)' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
+			),
+		),
+	) );
+
+	// 16. Shortcode Projects Subtitle
+	add_ux_builder_shortcode( 'ttw_projects_subtitle', array(
+		'name'      => __( 'TTW - Phụ Đề Trang Công Trình', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 16,
+		'require'   => array( 'ttw_projects_hero' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Nội dung phụ đề' ),
+				'default' => 'NHỮNG CÔNG TRÌNH THỂ HIỆN CHẤT LƯỢNG VÀ THẨM MỸ TRONG TỪNG CHI TIẾT.',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
+				'default' => '',
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ (ví dụ: 18px, 1.2rem)' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
+			),
+		),
+	) );
+
+
+	// 17. Shortcode Projects Archive (Danh sách công trình Figma + Lọc DB)
+	add_ux_builder_shortcode( 'ttw_projects_archive', array(
+		'name'      => __( 'TTW - Danh Sách Công Trình (Grid Figma)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 17,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'posts_per_page' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Số lượng công trình hiển thị' ),
+				'default' => '6',
+			),
+			'orderby' => array(
+				'type'    => 'select',
+				'heading' => __( 'Sắp xếp theo' ),
+				'default' => 'date',
+				'options' => array(
+					'date'       => __( 'Mới nhất / Ngày đăng' ),
+					'title'      => __( 'Tên công trình (A-Z / Z-A)' ),
+					'modified'   => __( 'Thời gian cập nhật' ),
+					'rand'       => __( 'Ngẫu nhiên' ),
+					'menu_order' => __( 'Thứ tự tùy chỉnh' ),
+				),
+			),
+			'order' => array(
+				'type'    => 'select',
+				'heading' => __( 'Thứ tự sắp xếp' ),
+				'default' => 'DESC',
+				'options' => array(
+					'DESC' => __( 'Giảm dần (Mới nhất / Z -> A)' ),
+					'ASC'  => __( 'Tăng dần (Cũ nhất / A -> Z)' ),
+				),
+			),
+		),
+	) );
+
+	// 18. Shortcode News Hero (Container)
+	add_ux_builder_shortcode( 'ttw_news_hero', array(
+		'name'      => __( 'TTW - Khối Banner Tin Tức (Hero)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 18,
+		'type'      => 'container',
+		'allow'     => array( 'ttw_news_title', 'ttw_news_subtitle' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(),
+	) );
+
+	// 19. Shortcode News Title
+	add_ux_builder_shortcode( 'ttw_news_title', array(
+		'name'      => __( 'TTW - Tiêu Đề Trang Tin Tức', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 19,
+		'require'   => array( 'ttw_news_hero' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Nội dung tiêu đề' ),
+				'default' => 'TIN TỨC & KIẾN THỨC',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
+				'default' => '',
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
+			),
+		),
+	) );
+
+	// 20. Shortcode News Subtitle
+	add_ux_builder_shortcode( 'ttw_news_subtitle', array(
+		'name'      => __( 'TTW - Phụ Đề Trang Tin Tức', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 20,
+		'require'   => array( 'ttw_news_hero' ),
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Nội dung phụ đề' ),
+				'default' => 'Cập nhật tin tức mới nhất, xu hướng kiến trúc và kiến thức chuyên sâu về giải pháp nhôm kính.',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
+				'default' => '',
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
+			),
+		),
+	) );
+
+	// 21. Shortcode News Archive (Danh sách bài viết tin tức bento grid chuẩn Figma 1:2767)
+	add_ux_builder_shortcode( 'ttw_news_archive', array(
+		'name'      => __( 'TTW - Danh Sách Bài Viết Tin Tức (Figma 1:2767)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 21,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'posts_per_page' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Số lượng bài viết trên 1 trang' ),
+				'default' => '6',
+			),
+			'orderby' => array(
+				'type'    => 'select',
+				'heading' => __( 'Sắp xếp theo' ),
+				'default' => 'date',
+				'options' => array(
+					'date'       => __( 'Mới nhất / Ngày đăng' ),
+					'title'      => __( 'Tiêu đề bài viết' ),
+					'modified'   => __( 'Thời gian cập nhật' ),
+					'rand'       => __( 'Ngẫu nhiên' ),
+				),
+			),
+			'order' => array(
+				'type'    => 'select',
+				'heading' => __( 'Thứ tự sắp xếp' ),
+				'default' => 'DESC',
+				'options' => array(
+					'DESC' => __( 'Giảm dần (Mới nhất)' ),
+					'ASC'  => __( 'Tăng dần (Cũ nhất)' ),
+				),
 			),
 		),
 	) );
 } );
+
+
+
+
+
+
 
 function ttw_register_shortcodes() {
 	// Shortcode Hero (Container Mẹ)
@@ -1074,9 +1719,25 @@ function ttw_register_shortcodes() {
 		<section class="ttw-stats">
 			<div class="container">
 				<div class="ttw-stats-grid ttw-animate ttw-fade-up">
-					<?php foreach ($stats as $i => $stat) : ?>
+					<?php foreach ($stats as $i => $stat) : 
+						$raw_val = trim($stat[0]);
+						if ( preg_match( '/^([\d\.,]+)(.*)$/u', $raw_val, $m ) ) {
+							$numeric_str = str_replace( array( '.', ',' ), '', $m[1] );
+							$target_num = (int) $numeric_str;
+							$suffix = $m[2];
+						} else {
+							$target_num = null;
+							$suffix = '';
+						}
+					?>
 						<div class="ttw-stat<?php echo 0 === $i ? '' : ' ttw-stat-divider'; ?>">
-							<div class="ttw-stat-number"><?php echo esc_html($stat[0]); ?></div>
+							<div class="ttw-stat-number">
+								<?php if ( null !== $target_num && $target_num > 0 ) : ?>
+									<span class="ttw-count" data-count="<?php echo esc_attr( $target_num ); ?>">0</span><?php echo esc_html( $suffix ); ?>
+								<?php else : ?>
+									<?php echo esc_html( $raw_val ); ?>
+								<?php endif; ?>
+							</div>
 							<div class="ttw-stat-label"><?php echo esc_html($stat[1]); ?></div>
 						</div>
 					<?php endforeach; ?>
@@ -1090,10 +1751,12 @@ function ttw_register_shortcodes() {
 	// Shortcode About (Container Mẹ)
 	add_shortcode( 'ttw_about', function( $atts, $content = null ) {
 		$a = shortcode_atts( array(
-			'image'      => '',
-			'bg_color'   => '',
-			'padding'    => '',
-			'custom_css' => '',
+			'image'         => '',
+			'bg_color'      => '',
+			'padding'       => '',
+			'text_link'     => 'CÁC GIẢI PHÁP TÂN TIẾN WINDOW',
+			'text_link_url' => '/gioi-thieu/',
+			'custom_css'    => '',
 		), $atts );
 
 		$section_styles = array();
@@ -1125,6 +1788,8 @@ function ttw_register_shortcodes() {
 			$ttw_about_image_html = '<img src="' . esc_url($img_url) . '" alt="About" loading="lazy">';
 		}
 
+		$link_label = ! empty( $a['text_link'] ) ? $a['text_link'] : 'CÁC GIẢI PHÁP TÂN TIẾN WINDOW';
+		$link_url   = ! empty( $a['text_link_url'] ) ? $a['text_link_url'] : '/gioi-thieu/';
 
 		ob_start();
 		?>
@@ -1136,7 +1801,7 @@ function ttw_register_shortcodes() {
 					</div>
 					<div class="ttw-about-text ttw-animate ttw-fade-right">
 						<?php echo $text_html; ?>
-						<a class="ttw-textlink" href="<?php echo esc_url(home_url('/gioi-thieu/')); ?>">Tìm hiểu thêm
+						<a class="ttw-textlink" href="<?php echo esc_url(home_url($link_url)); ?>"><?php echo esc_html($link_label); ?>
 							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 								<path d="M5 12h14" />
 								<path d="M12 5l7 7-7 7" />
@@ -1151,14 +1816,16 @@ function ttw_register_shortcodes() {
 	} );
 
 
+
 	// Shortcode About Eyebrow (Child)
 	add_shortcode( 'ttw_about_eyebrow', function( $atts ) {
 		$a = shortcode_atts( array(
-			'text'      => 'About Tan Tien Window',
+			'text'      => 'GIẢI PHÁP TÂN TIẾN WINDOW',
 			'color'     => '',
 			'font_size' => '',
 			'css'       => '',
 		), $atts );
+
 
 		$styles = array();
 		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr($a['color']) . ' !important';
@@ -1250,17 +1917,25 @@ function ttw_register_shortcodes() {
 	// Shortcode Products
 	add_shortcode( 'ttw_products', function( $atts ) {
 		$a = shortcode_atts( array(
-			'heading' => 'Sản phẩm nổi bật',
+			'heading' => 'Chúng tôi cung cấp',
+			'desc'    => 'Tân Tiến Window cung cấp các giải pháp cửa nhôm kính, cửa kính, vách kính, mặt dựng và kính kiến trúc cho nhà ở, biệt thự, văn phòng và công trình thương mại.',
 			'count'   => '6',
 			'orderby' => 'date',
 			'order'   => 'DESC',
 		), $atts );
+
 		ob_start();
 		?>
 		<section class="ttw-section ttw-section-gray" id="san-pham">
 			<div class="container">
 				<div class="ttw-section-row ttw-animate ttw-fade-up">
-					<h2 class="ttw-section-title"><?php echo esc_html($a['heading']); ?></h2>
+					<div>
+						<h2 class="ttw-section-title"><?php echo esc_html($a['heading']); ?></h2>
+						<?php if ( ! empty( $a['desc'] ) ) : ?>
+							<p class="ttw-section-desc"><?php echo esc_html($a['desc']); ?></p>
+						<?php endif; ?>
+
+					</div>
 					<a class="ttw-textlink" href="<?php echo esc_url(ttw_shop_url()); ?>">Xem tất cả
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M5 12h14" />
@@ -1268,6 +1943,7 @@ function ttw_register_shortcodes() {
 						</svg>
 					</a>
 				</div>
+
 				<div class="ttw-showcase ttw-animate ttw-fade-up">
 					<?php
 					$q_args = array(
@@ -1306,18 +1982,19 @@ function ttw_register_shortcodes() {
 	// Shortcode Values (Container)
 	add_shortcode( 'ttw_values', function( $atts, $content = null ) {
 		$a = shortcode_atts( array(
-			'heading' => 'Giá trị cốt lõi',
+			'heading' => 'NĂNG LỰC CỦA CHÚNG TÔI',
 		), $atts );
+
 
 		$inner_content = ! empty( $content ) ? do_shortcode( $content ) : '';
 
 		// Nếu người dùng chưa thêm item nào, dùng 4 item mặc định
 		if ( empty( trim( $inner_content ) ) ) {
 			$default_items = array(
-				array('01', 'Chất lượng', 'Cam kết sử dụng vật liệu cao cấp, đảm bảo độ bền và tính thẩm mỹ lâu dài cho mọi công trình.'),
-				array('02', 'Kinh nghiệm', 'Đội ngũ kỹ thuật viên lành nghề với hơn 10 năm kinh nghiệm trong lĩnh vực nhôm kính.'),
-				array('03', 'Thi công', 'Quy trình lắp đặt chuẩn xác, an toàn, đảm bảo tiến độ và vệ sinh công trình.'),
-				array('04', 'Đồng hành', 'Chính sách bảo hành dài hạn, hỗ trợ kỹ thuật nhanh chóng và tận tâm.'),
+				array('01', 'TƯ VẤN & GIẢI PHÁP', 'Phân tích nhu cầu, kiến trúc và điều kiện thực tế để đề xuất cấu hình nhôm kính phù hợp.'),
+				array('02', 'THIẾT KẾ & KỸ THUẬT', 'Triển khai bản vẽ, cấu tạo và giải pháp kỹ thuật đáp ứng yêu cầu thẩm mỹ và công năng.'),
+				array('03', 'SẢN XUẤT', 'Gia công nhôm kính tại nhà máy với quy trình kiểm soát chất lượng trong từng công đoạn.'),
+				array('04', 'THI CÔNG', 'Đội ngũ kỹ thuật trực tiếp lắp đặt, đảm bảo độ chính xác, an toàn và tiến độ công trình.'),
 			);
 			foreach ($default_items as $v) {
 				$inner_content .= sprintf(
@@ -1328,6 +2005,7 @@ function ttw_register_shortcodes() {
 				);
 			}
 		}
+
 
 		ob_start();
 		?>
@@ -1363,19 +2041,50 @@ function ttw_register_shortcodes() {
 	} );
 
 
-	// Shortcode Projects
+	// Shortcode Projects (Trang chủ - Lấy động từ Database category 72 CÔNG TRÌNH TIÊU BIỂU)
 	add_shortcode( 'ttw_projects', function( $atts ) {
 		$a = shortcode_atts( array(
 			'heading' => 'Công trình tiêu biểu',
 			'desc'    => 'Những công trình thể hiện chất lượng và thẩm mỹ trong từng chi tiết.',
+			'count'   => '3',
+			'ids'     => '',
+			'orderby' => 'date',
+			'order'   => 'DESC',
 		), $atts );
 
-		$projects = array(
-			array('proj1-villa', 'large', 'Biệt thự cao cấp', 'Ocean Villa Retreat', 'Đà Nẵng • Hệ cửa lùa panorama'),
-			array('proj2-office', 'small', 'Văn phòng', 'Tech Hub Tower', 'TP.HCM • Vách kính mặt dựng'),
-			array('proj3-apartment', 'small', 'Căn hộ', 'Skyrise Penthouse', 'Hà Nội • Cửa sổ cách âm'),
+		$query_args = array(
+			'post_type'   => 'post',
+			'post_status' => 'publish',
 		);
-		$img_uri = get_stylesheet_directory_uri() . '/assets/img/design/';
+
+		// Nếu người dùng chọn danh sách ID bài viết cụ thể
+		if ( ! empty( $a['ids'] ) ) {
+			$raw_ids = is_array( $a['ids'] ) ? $a['ids'] : explode( ',', $a['ids'] );
+			$clean_ids = array_filter( array_map( 'intval', $raw_ids ), function( $id ) { return $id > 0; } );
+			
+			if ( ! empty( $clean_ids ) ) {
+				// Giới hạn chỉ chọn & hiển thị tối đa đúng 3 bài
+				$clean_ids = array_slice( array_values( $clean_ids ), 0, 3 );
+
+				$query_args['post__in']       = $clean_ids;
+				$query_args['posts_per_page'] = count( $clean_ids );
+				$query_args['orderby']        = 'post__in'; // Hiển thị chuẩn 100% theo đúng thứ tự bạn đã nhấp chọn từng bài
+			}
+		} else {
+			// Người dùng không chọn ID -> Tự động lấy theo số lượng count và điều kiện sắp xếp
+			$query_args['cat']            = 72; // Category CÔNG TRÌNH TIÊU BIỂU
+			$query_args['posts_per_page'] = max( 1, intval( $a['count'] ) );
+			$query_args['orderby']        = sanitize_key( $a['orderby'] );
+			$query_args['order']          = strtoupper( sanitize_key( $a['order'] ) );
+		}
+
+
+
+		$q = new WP_Query( $query_args );
+		if ( ! $q->have_posts() ) return '';
+
+
+
 		ob_start();
 		?>
 		<section class="ttw-section ttw-section-gray" id="cong-trinh">
@@ -1385,20 +2094,40 @@ function ttw_register_shortcodes() {
 					<p><?php echo esc_html($a['desc']); ?></p>
 				</div>
 				<div class="ttw-projects ttw-animate ttw-fade-up">
-					<?php foreach ($projects as $project) : ?>
-						<a class="ttw-project ttw-project-<?php echo esc_attr($project[1]); ?>" href="<?php echo esc_url(ttw_projects_url()); ?>">
-							<img src="<?php echo esc_url($img_uri . $project[0] . '.jpg'); ?>" alt="<?php echo esc_attr($project[3]); ?>" loading="lazy">
+					<?php
+					$index = 0;
+					while ( $q->have_posts() ) :
+						$q->the_post();
+						$proj_id    = get_the_ID();
+						$proj_title = get_the_title();
+						$proj_link  = get_permalink();
+						$proj_thumb = get_the_post_thumbnail_url( $proj_id, 'large' );
+						if ( ! $proj_thumb ) {
+							$proj_thumb = get_stylesheet_directory_uri() . '/assets/img/design/proj1-villa.jpg';
+						}
+
+						// Lấy thẻ tag/chủng loại & địa điểm từ post_meta
+						$tag_label = get_post_meta( $proj_id, 'ttw_project_tag_label', true );
+						if ( ! $tag_label ) {
+							$tags = get_the_tags( $proj_id );
+							$tag_label = ( ! empty( $tags ) ) ? $tags[0]->name : 'BIỆT THỰ CAO CẤP';
+						}
+
+						$size_class = ( 0 === $index ) ? 'large' : 'small';
+						$index++;
+					?>
+						<a class="ttw-project ttw-project-<?php echo esc_attr( $size_class ); ?>" href="<?php echo esc_url( $proj_link ); ?>">
+							<img src="<?php echo esc_url( $proj_thumb ); ?>" alt="<?php echo esc_attr( $proj_title ); ?>" loading="lazy">
 							<div class="ttw-project-overlay"></div>
 							<div class="ttw-project-body">
-								<span class="ttw-project-cat"><?php echo esc_html($project[2]); ?></span>
-								<h3><?php echo esc_html($project[3]); ?></h3>
-								<p><?php echo esc_html($project[4]); ?></p>
+								<span class="ttw-project-cat"><?php echo esc_html( mb_strtoupper( $tag_label, 'UTF-8' ) ); ?></span>
+								<h3><?php echo esc_html( $proj_title ); ?></h3>
 							</div>
 						</a>
-					<?php endforeach; ?>
+					<?php endwhile; wp_reset_postdata(); ?>
 				</div>
 				<div class="ttw-projects-action">
-					<a class="ttw-textlink" href="<?php echo esc_url(ttw_projects_url()); ?>">Xem tất cả dự án
+					<a class="ttw-textlink" href="<?php echo esc_url( ttw_projects_url() ); ?>">Xem tất cả dự án
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M5 12h14" />
 							<path d="M12 5l7 7-7 7" />
@@ -1430,7 +2159,7 @@ function ttw_register_shortcodes() {
 			);
 			foreach ($default_steps as $step) {
 				$inner_content .= sprintf(
-					'<div class="ttw-step"><div class="ttw-step-num">%s</div><h3>%s</h3><p>%s</p></div>',
+					'<div class="ttw-step"><div class="ttw-step-num">%s</div><div class="ttw-step-content"><h3>%s</h3><p>%s</p></div></div>',
 					esc_html($step[0]),
 					esc_html($step[1]),
 					esc_html($step[2])
@@ -1465,9 +2194,12 @@ function ttw_register_shortcodes() {
 		?>
 		<div class="ttw-step">
 			<div class="ttw-step-num"><?php echo esc_html($a['num']); ?></div>
-			<h3><?php echo esc_html($a['title']); ?></h3>
-			<p><?php echo esc_html($a['desc']); ?></p>
+			<div class="ttw-step-content">
+				<h3><?php echo esc_html($a['title']); ?></h3>
+				<p><?php echo esc_html($a['desc']); ?></p>
+			</div>
 		</div>
+
 		<?php
 		return ob_get_clean();
 	} );
@@ -1539,7 +2271,640 @@ function ttw_register_shortcodes() {
 	} );
 
 
+	// Shortcode Products Hero (Container)
+	add_shortcode( 'ttw_products_hero', function( $atts, $content = null ) {
+		$inner = ! empty( $content ) ? do_shortcode( $content ) : '';
+		return '<section class="ttw-products-hero ttw-animate ttw-fade-up">' . $inner . '</section>';
+	} );
+
+	// Shortcode Products Title
+	add_shortcode( 'ttw_products_title', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'SẢN PHẨM',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<h1 class="ttw-products-title"' . $style_attr . '>' . esc_html( $a['text'] ) . '</h1>';
+	} );
+
+	// Shortcode Products Subtitle
+	add_shortcode( 'ttw_products_subtitle', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'GIẢI PHÁP NHÔM KÍNH CHO KIẾN TRÚC HIỆN ĐẠI',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<p class="ttw-products-subtitle"' . $style_attr . '>' . esc_html( $a['text'] ) . '</p>';
+	} );
+
+	// Shortcode Projects Hero (Container)
+	add_shortcode( 'ttw_projects_hero', function( $atts, $content = null ) {
+		$inner = ! empty( $content ) ? do_shortcode( $content ) : '';
+		return '<div class="ttw-projects-page"><div class="ttw-projects-container"><section class="ttw-projects-hero ttw-animate ttw-fade-up">' . $inner . '</section></div></div>';
+	} );
+
+
+	// Shortcode Projects Title
+	add_shortcode( 'ttw_projects_title', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'CÔNG TRÌNH TIÊU BIỂU',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<h1 class="ttw-projects-title"' . $style_attr . '>' . esc_html( $a['text'] ) . '</h1>';
+	} );
+
+	// Shortcode Projects Subtitle
+	add_shortcode( 'ttw_projects_subtitle', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'NHỮNG CÔNG TRÌNH THỂ HIỆN CHẤT LƯỢNG VÀ THẨM MỸ TRONG TỪNG CHI TIẾT.',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<p class="ttw-projects-subtitle"' . $style_attr . '>' . esc_html( $a['text'] ) . '</p>';
+	} );
+
+
+
+	// Shortcode Projects Archive (Danh sách công trình bento grid chuẩn Figma 1:2361 + Dữ liệu động DB 100%)
+	add_shortcode( 'ttw_projects_archive', function( $atts ) {
+		$a = shortcode_atts( array(
+			'posts_per_page' => '6',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		), $atts );
+
+		$ttw_paged    = isset( $_GET['paged'] ) && (int) $_GET['paged'] > 0 ? (int) $_GET['paged'] : 1;
+		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
+
+		$query_args = array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'posts_per_page' => (int) $a['posts_per_page'],
+			'paged'          => $ttw_paged,
+			'cat'            => 72, // Category CÔNG TRÌNH TIÊU BIỂU
+			'orderby'        => sanitize_key( $a['orderby'] ),
+			'order'          => strtoupper( sanitize_key( $a['order'] ) ),
+		);
+
+
+		if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+			$query_args['tag'] = $ttw_curr_cat;
+		}
+
+		$projects_query = new WP_Query( $query_args );
+		ob_start();
+
+		?>
+		<div class="ttw-projects-page" style="padding-top: 0;"><div class="ttw-projects-container" style="padding-top: 0; padding-bottom: 80px;">
+			<section class="ttw-project-grid" aria-label="Danh sách công trình">
+				<?php if ( $projects_query->have_posts() ) : ?>
+					<?php while ( $projects_query->have_posts() ) : $projects_query->the_post(); ?>
+						<?php
+						$proj_id    = get_the_ID();
+						$proj_title = get_the_title();
+						$proj_link  = get_permalink();
+						$proj_thumb = get_the_post_thumbnail_url( $proj_id, 'large' );
+						if ( ! $proj_thumb ) {
+							$proj_thumb = get_stylesheet_directory_uri() . '/assets/img/design/proj1-villa.jpg';
+						}
+
+						// Đọc dữ liệu động thực tế từ post_meta và tags trong Database
+						$tag_label = get_post_meta( $proj_id, 'ttw_project_tag_label', true );
+						if ( ! $tag_label ) {
+							$tags_terms = get_the_tags( $proj_id );
+							$tag_label  = ( ! empty( $tags_terms ) && ! is_wp_error( $tags_terms ) ) ? mb_strtoupper( $tags_terms[0]->name, 'UTF-8' ) : 'CÔNG TRÌNH TIÊU BIỂU';
+						}
+
+						?>
+						<article class="ttw-project-card ttw-animate ttw-fade-up">
+							<a class="ttw-project-thumb" href="<?php echo esc_url( $proj_link ); ?>" title="<?php echo esc_attr( $proj_title ); ?>">
+								<img src="<?php echo esc_url( $proj_thumb ); ?>" alt="<?php echo esc_attr( $proj_title ); ?>" loading="lazy" />
+								<div class="ttw-project-overlay">
+									<div class="ttw-project-meta">
+										<span class="ttw-project-tag"><?php echo esc_html( $tag_label ); ?></span>
+									</div>
+									<h3 class="ttw-project-title"><?php echo esc_html( $proj_title ); ?></h3>
+								</div>
+							</a>
+						</article>
+					<?php endwhile; wp_reset_postdata(); ?>
+				<?php else : ?>
+					<div class="ttw-project-empty" style="grid-column: 1 / -1;">
+						<p>Chưa có bài viết công trình nào trong mục này.</p>
+					</div>
+				<?php endif; ?>
+			</section>
+
+			<?php if ( $projects_query->max_num_pages > 1 ) : ?>
+				<nav class="ttw-pagination-figma ttw-animate ttw-fade-up" aria-label="Phân trang công trình" style="margin-top: 20px;">
+					<?php
+					$total_pages = $projects_query->max_num_pages;
+					$base_url    = strtok( get_permalink(), '?' );
+					$page_base   = ( 'all' !== $ttw_curr_cat ) ? add_query_arg( 'cat', $ttw_curr_cat, $base_url ) : $base_url;
+
+					for ( $i = 1; $i <= $total_pages; $i++ ) :
+						$page_url  = ( 1 === $i ) ? $page_base : add_query_arg( 'paged', $i, $page_base );
+						$is_active = ( $i === $ttw_paged );
+						?>
+						<a href="<?php echo esc_url( $page_url ); ?>"
+						   class="ttw-page-btn<?php echo $is_active ? ' active' : ''; ?>"
+						   <?php echo $is_active ? 'aria-current="page"' : ''; ?>>
+							<?php echo $i; ?>
+						</a>
+					<?php endfor; ?>
+
+					<?php if ( $ttw_paged < $total_pages ) : ?>
+						<a href="<?php echo esc_url( add_query_arg( 'paged', $ttw_paged + 1, $page_base ) ); ?>"
+						   class="ttw-page-btn ttw-page-next"
+						   aria-label="Trang tiếp theo">
+							<svg width="6" height="10" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+								<path d="M3.06667 4L0 0.933333L0.933333 0L4.93333 4L0.933333 8L0 7.06667L3.06667 4Z" fill="currentColor"/>
+							</svg>
+						</a>
+					<?php endif; ?>
+				</nav>
+			<?php endif; ?>
+
+
+		</div></div>
+		<?php
+		return ob_get_clean();
+	} );
+
+	// -------------------------------------------------------------------------
+	// SHORTCODES TRANG TIN TỨC & KIẾN THỨC (FIGMA NODE 1:2767)
+	// -------------------------------------------------------------------------
+
+	// Shortcode News Hero Container
+	add_shortcode( 'ttw_news_hero', function( $atts, $content = null ) {
+		$inner = ! empty( $content ) ? do_shortcode( $content ) : '';
+		return '<section class="ttw-news-hero ttw-animate ttw-fade-up">' . $inner . '</section>';
+	} );
+
+
+	// Shortcode News Title
+	add_shortcode( 'ttw_news_title', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'TIN TỨC & KIẾN THỨC',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<h1 class="ttw-news-title"' . $style_attr . '>' . esc_html( $a['text'] ) . '</h1>';
+	} );
+
+	// Shortcode News Subtitle
+	add_shortcode( 'ttw_news_subtitle', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'Cập nhật tin tức mới nhất, xu hướng kiến trúc và kiến thức chuyên sâu về giải pháp nhôm kính.',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<p class="ttw-news-subtitle"' . $style_attr . '>' . esc_html( $a['text'] ) . '</p>';
+	} );
+
+	// Shortcode News Archive (Bento Grid Tin tức + Bài viết nổi bật Featured + Phân trang chuẩn Figma 1:2767)
+	add_shortcode( 'ttw_news_archive', function( $atts ) {
+		$a = shortcode_atts( array(
+			'posts_per_page' => '6',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		), $atts );
+
+		$ttw_paged    = isset( $_GET['paged'] ) && (int) $_GET['paged'] > 0 ? (int) $_GET['paged'] : 1;
+		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
+
+		$query_args = array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'posts_per_page' => (int) $a['posts_per_page'],
+			'paged'          => $ttw_paged,
+			'category__not_in' => array( 72 ), // Loại bỏ category công trình tiêu biểu
+			'orderby'        => sanitize_key( $a['orderby'] ),
+			'order'          => strtoupper( sanitize_key( $a['order'] ) ),
+		);
+
+		if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+			$query_args['category_name'] = $ttw_curr_cat;
+		}
+
+		$news_query = new WP_Query( $query_args );
+
+		// Lấy danh sách danh mục (category) trực tiếp từ Database (loại bỏ category Công trình tiêu biểu ID 72 & Uncategorized 1)
+		$ttw_db_terms = get_terms( array(
+			'taxonomy'   => 'category',
+			'hide_empty' => false,
+			'exclude'    => array( 72, 1 ), // Exclude Công trình tiêu biểu & Dịch vụ
+			'orderby'    => 'name',
+			'order'      => 'ASC',
+		) );
+
+		$ttw_categories = array(
+			array( 'slug' => 'all', 'name' => 'TẤT CẢ' ),
+		);
+
+		if ( ! empty( $ttw_db_terms ) && ! is_wp_error( $ttw_db_terms ) ) {
+			foreach ( $ttw_db_terms as $term_obj ) {
+				$ttw_categories[] = array(
+					'slug' => $term_obj->slug,
+					'name' => mb_strtoupper( $term_obj->name, 'UTF-8' ),
+				);
+			}
+		}
+
+
+
+		ob_start();
+		?>
+		<!-- Filter Categories Nav -->
+
+				<nav class="ttw-news-filter-nav ttw-animate ttw-fade-up" aria-label="Bộ lọc tin tức">
+					<ul class="ttw-news-filter-list">
+						<?php
+						$base_url = strtok( get_permalink(), '?' );
+						foreach ( $ttw_categories as $ttw_cat ) :
+							$cat_slug   = $ttw_cat['slug'];
+							$is_cat_act = ( $ttw_curr_cat === $cat_slug );
+							$cat_url    = ( 'all' === $cat_slug ) ? $base_url : add_query_arg( 'cat', $cat_slug, $base_url );
+							?>
+							<li class="ttw-news-filter-item">
+								<a href="<?php echo esc_url( $cat_url ); ?>" class="ttw-news-filter-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
+									<?php echo esc_html( $ttw_cat['name'] ); ?>
+								</a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</nav>
+
+				<?php if ( $news_query->have_posts() ) : ?>
+					<?php
+					$post_index = 0;
+					$featured_post = null;
+					$grid_posts = array();
+
+					while ( $news_query->have_posts() ) {
+						$news_query->the_post();
+						if ( 0 === $post_index && 1 === $ttw_paged ) {
+							$featured_post = get_post();
+						} else {
+							$grid_posts[] = get_post();
+						}
+						$post_index++;
+					}
+					wp_reset_postdata();
+					?>
+
+					<!-- Featured Big Card (Trang 1 hiển thị bài viết nổi bật đầu tiên) -->
+					<?php if ( $featured_post ) : ?>
+						<?php
+						$feat_id    = $featured_post->ID;
+						$feat_title = get_the_title( $feat_id );
+						$feat_link  = get_permalink( $feat_id );
+						$feat_date  = get_the_date( 'd.m.Y', $feat_id );
+						$feat_desc  = get_the_excerpt( $feat_id );
+						if ( empty( $feat_desc ) ) {
+							$feat_desc = wp_trim_words( $featured_post->post_content, 25, '...' );
+						}
+						$feat_thumb = get_the_post_thumbnail_url( $feat_id, 'full' );
+						if ( ! $feat_thumb ) {
+							$feat_thumb = get_stylesheet_directory_uri() . '/assets/img/design/news-feat.jpg';
+						}
+						$cats = get_the_category( $feat_id );
+						$feat_cat = ( ! empty( $cats ) ) ? mb_strtoupper( $cats[0]->name, 'UTF-8' ) : 'TIN TỨC & SỰ KIỆN';
+						?>
+						<article class="ttw-news-featured ttw-animate ttw-fade-up">
+							<div class="ttw-featured-media">
+								<a href="<?php echo esc_url( $feat_link ); ?>" title="<?php echo esc_attr( $feat_title ); ?>">
+									<img src="<?php echo esc_url( $feat_thumb ); ?>" alt="<?php echo esc_attr( $feat_title ); ?>" loading="lazy" />
+									<div class="ttw-featured-overlay"></div>
+								</a>
+							</div>
+							<div class="ttw-featured-card">
+								<div class="ttw-news-meta-row">
+									<span class="ttw-news-tag"><?php echo esc_html( $feat_cat ); ?></span>
+									<span class="ttw-news-date"><?php echo esc_html( $feat_date ); ?></span>
+								</div>
+								<h2 class="ttw-featured-title">
+									<a href="<?php echo esc_url( $feat_link ); ?>"><?php echo esc_html( $feat_title ); ?></a>
+								</h2>
+								<p class="ttw-featured-desc"><?php echo esc_html( $feat_desc ); ?></p>
+								<a href="<?php echo esc_url( $feat_link ); ?>" class="ttw-news-readmore">
+									<span>ĐỌC THÊM</span>
+									<svg width="12" height="12" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+										<path d="M8.3703 6.18749H0V4.81249H8.3703L4.5203 0.962498L5.49999 0L11 5.49999L5.49999 11L4.5203 10.0375L8.3703 6.18749Z" fill="currentColor"/>
+									</svg>
+								</a>
+							</div>
+						</article>
+
+					<?php endif; ?>
+
+					<!-- News Grid 3 Columns -->
+					<section class="ttw-news-grid" aria-label="Danh sách tin tức">
+						<?php
+						$card_posts = ( $featured_post ) ? $grid_posts : $news_query->posts;
+						foreach ( $card_posts as $g_post ) :
+							$p_id    = $g_post->ID;
+							$p_title = get_the_title( $p_id );
+							$p_link  = get_permalink( $p_id );
+							$p_date  = get_the_date( 'd.m.Y', $p_id );
+							$p_thumb = get_the_post_thumbnail_url( $p_id, 'large' );
+							if ( ! $p_thumb ) {
+								$p_thumb = get_stylesheet_directory_uri() . '/assets/img/design/news1.jpg';
+							}
+							$g_cats = get_the_category( $p_id );
+							$p_cat  = ( ! empty( $g_cats ) ) ? mb_strtoupper( $g_cats[0]->name, 'UTF-8' ) : 'TIN TỨC & SỰ KIỆN';
+							?>
+							<article class="ttw-news-card ttw-animate ttw-fade-up">
+								<div class="ttw-news-content">
+									<a class="ttw-news-thumb" href="<?php echo esc_url( $p_link ); ?>" title="<?php echo esc_attr( $p_title ); ?>">
+										<img src="<?php echo esc_url( $p_thumb ); ?>" alt="<?php echo esc_attr( $p_title ); ?>" loading="lazy" />
+									</a>
+									<div class="ttw-news-meta-row">
+										<span class="ttw-news-tag"><?php echo esc_html( $p_cat ); ?></span>
+										<span class="ttw-news-date"><?php echo esc_html( $p_date ); ?></span>
+									</div>
+									<h3 class="ttw-news-card-title">
+										<a href="<?php echo esc_url( $p_link ); ?>"><?php echo esc_html( $p_title ); ?></a>
+									</h3>
+									<a href="<?php echo esc_url( $p_link ); ?>" class="ttw-news-readmore">
+										<span>ĐỌC THÊM</span>
+										<svg width="12" height="12" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+											<path d="M8.3703 6.18749H0V4.81249H8.3703L4.5203 0.962498L5.49999 0L11 5.49999L5.49999 11L4.5203 10.0375L8.3703 6.18749Z" fill="currentColor"/>
+										</svg>
+									</a>
+								</div>
+							</article>
+
+
+						<?php endforeach; ?>
+					</section>
+
+				<?php else : ?>
+					<div class="ttw-news-empty">
+						<p>Chưa có bài viết tin tức nào trong mục này.</p>
+					</div>
+				<?php endif; ?>
+
+				<!-- News Pagination -->
+				<?php if ( $news_query->max_num_pages > 1 ) : ?>
+					<nav class="ttw-news-pagination ttw-animate ttw-fade-up" aria-label="Phân trang tin tức">
+						<?php
+						$total_pages = $news_query->max_num_pages;
+						$page_base   = ( 'all' !== $ttw_curr_cat ) ? add_query_arg( 'cat', $ttw_curr_cat, $base_url ) : $base_url;
+
+						for ( $i = 1; $i <= $total_pages; $i++ ) :
+							$page_url  = ( 1 === $i ) ? $page_base : add_query_arg( 'paged', $i, $page_base );
+							$is_active = ( $i === $ttw_paged );
+							?>
+							<a href="<?php echo esc_url( $page_url ); ?>"
+							   class="ttw-news-page-btn<?php echo $is_active ? ' active' : ''; ?>"
+							   <?php echo $is_active ? 'aria-current="page"' : ''; ?>>
+								<?php echo $i; ?>
+							</a>
+						<?php endfor; ?>
+
+						<?php if ( $ttw_paged < $total_pages ) : ?>
+							<a href="<?php echo esc_url( add_query_arg( 'paged', $ttw_paged + 1, $page_base ) ); ?>"
+							   class="ttw-news-page-btn"
+							   aria-label="Trang tiếp theo">
+								<svg width="6" height="10" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M3.06667 4L0 0.933333L0.933333 0L4.93333 4L0.933333 8L0 7.06667L3.06667 4Z" fill="currentColor"/>
+								</svg>
+							</a>
+						<?php endif; ?>
+					</nav>
+				<?php endif; ?>
+
+		<?php
+		return ob_get_clean();
+	} );
+
+
+
+
+
+
+
+
+
+
+	// Shortcode Product Archive (Danh sách sản phẩm bento + lọc DB + phân trang)
+	add_shortcode( 'ttw_product_archive', function( $atts ) {
+		$a = shortcode_atts( array(
+			'posts_per_page' => '6',
+			'count'          => '',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		), $atts );
+
+		$per_page = ! empty( $a['count'] ) ? intval( $a['count'] ) : intval( $a['posts_per_page'] );
+		if ( $per_page <= 0 ) {
+			$per_page = 6;
+		}
+
+		$ttw_paged    = isset( $_GET['paged'] ) && (int) $_GET['paged'] > 0 ? (int) $_GET['paged'] : 1;
+		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
+
+
+		$ttw_db_terms = get_terms( array(
+			'taxonomy'   => 'product_cat',
+			'hide_empty' => true,
+			'exclude'    => array( 28, 66, 56, 57 ),
+		) );
+
+		$ttw_categories = array(
+			array( 'slug' => 'all', 'name' => 'Tất cả' ),
+		);
+
+		if ( ! empty( $ttw_db_terms ) && ! is_wp_error( $ttw_db_terms ) ) {
+			foreach ( $ttw_db_terms as $term_obj ) {
+				$ttw_categories[] = array(
+					'slug' => $term_obj->slug,
+					'name' => $term_obj->name,
+				);
+			}
+		}
+
+		$query_args = array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $ttw_paged,
+			'orderby'        => sanitize_key( $a['orderby'] ),
+			'order'          => strtoupper( sanitize_key( $a['order'] ) ),
+		);
+
+
+
+		if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+			$query_args['tax_query'] = array(
+				array(
+					'taxonomy' => 'product_cat',
+					'field'    => 'slug',
+					'terms'    => $ttw_curr_cat,
+				),
+			);
+		}
+
+		$ttw_products_query = new WP_Query( $query_args );
+
+		ob_start();
+		?>
+		<div class="ttw-products-container" style="padding-top:0;">
+			<nav class="ttw-category-nav ttw-animate ttw-fade-up" aria-label="Danh mục sản phẩm">
+
+			<ul class="ttw-category-list" id="ttw-category-filter">
+				<?php
+				$base_url = strtok( get_permalink(), '?' );
+				foreach ( $ttw_categories as $ttw_cat ) :
+					$cat_slug   = $ttw_cat['slug'];
+					$is_cat_act = ( $ttw_curr_cat === $cat_slug );
+					$cat_url    = ( 'all' === $cat_slug ) ? $base_url : add_query_arg( 'cat', $cat_slug, $base_url );
+					?>
+					<li class="ttw-category-item">
+						<a href="<?php echo esc_url( $cat_url ); ?>"
+						   class="ttw-category-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
+							<?php echo esc_html( $ttw_cat['name'] ); ?>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</nav>
+
+		<section class="ttw-product-grid" id="ttw-product-grid" aria-label="Danh sách thẻ sản phẩm">
+			<?php if ( $ttw_products_query->have_posts() ) : ?>
+				<?php while ( $ttw_products_query->have_posts() ) : $ttw_products_query->the_post(); ?>
+					<?php
+					$prod_id    = get_the_ID();
+					$prod_title = get_the_title();
+					$prod_link  = get_permalink();
+					$prod_thumb = get_the_post_thumbnail_url( $prod_id, 'medium_large' );
+					if ( ! $prod_thumb ) {
+						$prod_thumb = get_stylesheet_directory_uri() . '/assets/img/design/hero-bg.jpg';
+					}
+					$prod_excerpt = wp_trim_words( get_the_excerpt(), 20 );
+					if ( ! $prod_excerpt ) {
+						$prod_excerpt = 'Giải pháp nhôm kính cao cấp Tân Tiến Window, thiết kế hiện đại, bền bỉ và thẩm mỹ cao.';
+					}
+					$terms = get_the_terms( $prod_id, 'product_cat' );
+					$tag   = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? mb_strtoupper( $terms[0]->name, 'UTF-8' ) : 'HỆ NHÔM CAO CẤP';
+					?>
+					<article class="ttw-card-bento ttw-animate ttw-fade-up">
+						<a class="ttw-card-thumb" href="<?php echo esc_url( $prod_link ); ?>" title="<?php echo esc_attr( $prod_title ); ?>">
+							<img src="<?php echo esc_url( $prod_thumb ); ?>" alt="<?php echo esc_attr( $prod_title ); ?>" loading="lazy" />
+						</a>
+
+						<div class="ttw-card-content">
+							<span class="ttw-card-tag"><?php echo esc_html( $tag ); ?></span>
+							<h3 class="ttw-card-title">
+								<a href="<?php echo esc_url( $prod_link ); ?>"><?php echo esc_html( $prod_title ); ?></a>
+							</h3>
+							<p class="ttw-card-desc"><?php echo esc_html( $prod_excerpt ); ?></p>
+							
+							<div class="ttw-card-footer">
+								<a class="ttw-card-action" href="<?php echo esc_url( $prod_link ); ?>">
+									<span>XEM CHI TIẾT</span>
+									<svg class="ttw-card-arrow" width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+										<path d="M8.3703 6.18749H0V4.81249H8.3703L4.5203 0.962498L5.49999 0L11 5.49999L5.49999 11L4.5203 10.0375L8.3703 6.18749Z" fill="currentColor"/>
+									</svg>
+								</a>
+							</div>
+						</div>
+					</article>
+				<?php endwhile; wp_reset_postdata(); ?>
+			<?php else : ?>
+				<div class="ttw-filter-empty" style="grid-column: 1 / -1;">
+					<p>Không tìm thấy sản phẩm nào trong danh mục này.</p>
+				</div>
+			<?php endif; ?>
+		</section>
+
+		<?php if ( $ttw_products_query->max_num_pages > 1 ) : ?>
+			<nav class="ttw-pagination-figma ttw-animate ttw-fade-up" aria-label="Phân trang sản phẩm">
+				<?php
+				$total_pages = $ttw_products_query->max_num_pages;
+				$page_base   = ( 'all' !== $ttw_curr_cat ) ? add_query_arg( 'cat', $ttw_curr_cat, $base_url ) : $base_url;
+
+				for ( $i = 1; $i <= $total_pages; $i++ ) :
+					$page_url  = ( 1 === $i ) ? $page_base : add_query_arg( 'paged', $i, $page_base );
+					$is_active = ( $i === $ttw_paged );
+					?>
+					<a href="<?php echo esc_url( $page_url ); ?>"
+					   class="ttw-page-btn<?php echo $is_active ? ' active' : ''; ?>"
+					   <?php echo $is_active ? 'aria-current="page"' : ''; ?>>
+						<?php echo $i; ?>
+					</a>
+				<?php endfor; ?>
+
+				<?php if ( $ttw_paged < $total_pages ) : ?>
+					<a href="<?php echo esc_url( add_query_arg( 'paged', $ttw_paged + 1, $page_base ) ); ?>"
+					   class="ttw-page-btn ttw-page-next"
+					   aria-label="Trang tiếp theo">
+						<svg width="6" height="10" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+							<path d="M3.06667 4L0 0.933333L0.933333 0L4.93333 4L0.933333 8L0 7.06667L3.06667 4Z" fill="currentColor"/>
+						</svg>
+					</a>
+				<?php endif; ?>
+			</nav>
+		<?php endif; ?>
+		</div>
+		<?php
+		return ob_get_clean();
+	} );
+
+
+
 	// Shortcode Partners (Container)
+
 	add_shortcode( 'ttw_partners', function( $atts, $content = null ) {
 		$a = shortcode_atts( array(
 			'heading' => 'Đối tác của chúng tôi',
@@ -1618,22 +2983,31 @@ function ttw_register_shortcodes() {
 
 		$inner_content = ! empty( $content ) ? do_shortcode( $content ) : '';
 
-		// Nếu chưa có item nào, dùng 3 đánh giá mặc định
+		// Nếu chưa có item nào hoặc chưa truyền thuộc tính image, hiển thị 6 đánh giá kèm ảnh công trình
 		if ( empty( trim( $inner_content ) ) ) {
 			$default_testimonials = array(
-				array('Anh Minh Tuấn', 'Chủ đầu tư biệt thự Vinhomes', '“Tôi rất ấn tượng với sự chuyên nghiệp của đội ngũ Tân Tiến. Hệ thống cửa nhôm Xingfa được lắp đặt hoàn hảo, cách âm cực tốt và mang lại vẻ đẹp hiện đại cho ngôi nhà.”'),
-				array('Chị Lan Hương', 'Giám đốc dự án Tech Office', '“Vách kính mặt dựng cho tòa nhà văn phòng của chúng tôi được thi công đúng tiến độ, chất lượng kính tuyệt vời. Dịch vụ hậu mãi cũng rất tận tình.”'),
-				array('Anh Hoàng Quân', 'Quản lý dự án Ocean Resort', '“Tân Tiến Window đã tư vấn giải pháp lan can kính rất phù hợp với thiết kế tổng thể của resort. Khách hàng của chúng tôi rất thích không gian mở này.”'),
+				array('Anh Hưởng', 'Q.Đống Đa, Hà Nội', 'Tôi rất vui và hài lòng với lựa chọn của mình, sau khi nhận bàn giao hệ thống cửa nhôm kính cao cấp của Tân Tiến.', '2721'),
+				array('Anh Thắng', 'Sóc Sơn, Hà Nội', 'Là công trình mặt dựng ngắt tầng khổ lớn nhưng tôi thấy hoàn toàn yên tâm về kỹ thuật và độ an toàn.', '2695'),
+				array('CTY. An Phước', 'Chủ đầu tư tòa nhà', 'Sản phẩm công trình mặt dựng thông tầng chất lượng và sang trọng, đội ngũ TanTienwindow làm việc rất chuyên nghiệp.', '2696'),
+				array('Anh Minh Tuấn', 'Chủ đầu tư biệt thự Vinhomes', 'Hệ thống cửa nhôm Xingfa cao cấp được thi công hoàn hảo, cách âm cách nhiệt cực tốt cho biệt thự.', '2697'),
+				array('Chị Lan Hương', 'Giám đốc dự án Tech Office', 'Vách kính mặt dựng cho tòa nhà văn phòng được thi công chuẩn tiến độ, chất lượng kính tuyệt vời.', '2698'),
+				array('Anh Hoàng Quân', 'Quản lý dự án Ocean Resort', 'Giải pháp lan can kính và cửa nhôm kính lùa panorama rất phù hợp với kiến trúc resort hiện đại.', '2724'),
 			);
 			foreach ($default_testimonials as $t) {
+				$img_src = wp_get_attachment_image_src( $t[3], 'large' );
+				$img_url = $img_src ? $img_src[0] : '';
+				$img_html = $img_url ? sprintf('<div class="ttw-quote-img-box"><img src="%s" alt="%s" loading="lazy"></div>', esc_url($img_url), esc_attr($t[0])) : '';
 				$inner_content .= sprintf(
-					'<div class="ttw-quote"><svg class="ttw-quote-mark" width="34" height="26" viewBox="0 0 45 32" fill="currentColor" aria-hidden="true"><path d="M0 32V20.4C0 9.1 6.1 2.7 17.6 0l2.1 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H0zm25.3 0V20.4C25.3 9.1 31.4 2.7 42.9 0L45 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H25.3z" /></svg><p class="ttw-quote-text">%s</p><div class="ttw-quote-author"><strong>%s</strong><span>%s</span></div></div>',
+					'<div class="ttw-quote"><svg class="ttw-quote-mark" width="34" height="26" viewBox="0 0 45 32" fill="currentColor" aria-hidden="true"><path d="M0 32V20.4C0 9.1 6.1 2.7 17.6 0l2.1 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H0zm25.3 0V20.4C25.3 9.1 31.4 2.7 42.9 0L45 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H25.3z" /></svg><p class="ttw-quote-text">%s</p>%s<div class="ttw-quote-author"><strong>%s</strong><span>%s</span></div></div>',
 					esc_html($t[2]),
+					$img_html,
 					esc_html($t[0]),
 					esc_html(strtoupper($t[1]))
 				);
 			}
 		}
+
+
 
 		ob_start();
 		?>
@@ -1643,8 +3017,20 @@ function ttw_register_shortcodes() {
 					<h2 class="ttw-section-title"><?php echo esc_html($a['heading']); ?></h2>
 					<p><?php echo esc_html($a['desc']); ?></p>
 				</div>
-				<div class="ttw-quotes ttw-animate ttw-fade-up">
-					<?php echo $inner_content; ?>
+				<div class="ttw-quotes-wrapper" style="position: relative;">
+					<button type="button" class="ttw-slider-arrow ttw-slider-arrow-prev ttw-slider-prev" aria-label="Đánh giá trước">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M15 18l-6-6 6-6" />
+						</svg>
+					</button>
+					<div class="ttw-quotes ttw-animate ttw-fade-up">
+						<?php echo $inner_content; ?>
+					</div>
+					<button type="button" class="ttw-slider-arrow ttw-slider-arrow-next ttw-slider-next" aria-label="Đánh giá tiếp theo">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M9 18l6-6-6-6" />
+						</svg>
+					</button>
 				</div>
 			</div>
 		</section>
@@ -1652,13 +3038,28 @@ function ttw_register_shortcodes() {
 		return ob_get_clean();
 	} );
 
+
+
 	// Shortcode Testimonial Item (Child)
 	add_shortcode( 'ttw_testimonial_item', function( $atts ) {
 		$a = shortcode_atts( array(
+			'image'  => '',
 			'author' => 'Anh Minh Tuấn',
 			'role'   => 'Chủ đầu tư biệt thự Vinhomes',
 			'quote'  => 'Tôi rất ấn tượng với sự chuyên nghiệp...',
 		), $atts );
+
+		$img_url = '';
+		if ( ! empty( $a['image'] ) ) {
+			if ( is_numeric( $a['image'] ) ) {
+				$src = wp_get_attachment_image_src( $a['image'], 'large' );
+				if ( $src ) {
+					$img_url = $src[0];
+				}
+			} else {
+				$img_url = $a['image'];
+			}
+		}
 
 		ob_start();
 		?>
@@ -1667,6 +3068,13 @@ function ttw_register_shortcodes() {
 				<path d="M0 32V20.4C0 9.1 6.1 2.7 17.6 0l2.1 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H0zm25.3 0V20.4C25.3 9.1 31.4 2.7 42.9 0L45 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H25.3z" />
 			</svg>
 			<p class="ttw-quote-text"><?php echo esc_html($a['quote']); ?></p>
+			
+			<?php if ( ! empty( $img_url ) ) : ?>
+				<div class="ttw-quote-img-box">
+					<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $a['author'] ); ?>" loading="lazy">
+				</div>
+			<?php endif; ?>
+
 			<div class="ttw-quote-author">
 				<strong><?php echo esc_html($a['author']); ?></strong>
 				<span><?php echo esc_html(strtoupper($a['role'])); ?></span>
@@ -1675,6 +3083,8 @@ function ttw_register_shortcodes() {
 		<?php
 		return ob_get_clean();
 	} );
+
+
 
 
 	// Shortcode News (Container)
