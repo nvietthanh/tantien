@@ -12,7 +12,99 @@
 		initScrollReveal();
 		initGalleryLightbox();
 		initContactForm();
+		initQuotesSlider();
+		initProductCategoryFilter();
+		initProjectFilter();
 	});
+
+	function initQuotesSlider() {
+		var slider = document.querySelector('.ttw-quotes');
+		var prevBtn = document.querySelector('.ttw-slider-prev');
+		var nextBtn = document.querySelector('.ttw-slider-next');
+
+		if (!slider) {
+			return;
+		}
+
+		var autoSlideTimer = null;
+		var slideInterval = 3000; // Tự động nhảy bài sau mỗi 4 giây
+
+		function getScrollAmount() {
+			var card = slider.querySelector('.ttw-quote');
+			if (card) {
+				return card.offsetWidth + 24; // Chiều rộng 1 card + gap
+			}
+			return 340;
+		}
+
+		function nextSlide() {
+			var maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+			// Nếu đã cuộn tới cuối cùng thì xoay vòng về đầu
+			if (Math.ceil(slider.scrollLeft) >= maxScrollLeft - 10) {
+				slider.scrollTo({
+					left: 0,
+					behavior: 'smooth'
+				});
+			} else {
+				slider.scrollBy({
+					left: getScrollAmount(),
+					behavior: 'smooth'
+				});
+			}
+		}
+
+		function prevSlide() {
+			// Nếu đang ở đầu thì nhảy về cuối
+			if (slider.scrollLeft <= 10) {
+				slider.scrollTo({
+					left: slider.scrollWidth,
+					behavior: 'smooth'
+				});
+			} else {
+				slider.scrollBy({
+					left: -getScrollAmount(),
+					behavior: 'smooth'
+				});
+			}
+		}
+
+		function startAutoSlide() {
+			stopAutoSlide();
+			autoSlideTimer = setInterval(nextSlide, slideInterval);
+		}
+
+		function stopAutoSlide() {
+			if (autoSlideTimer) {
+				clearInterval(autoSlideTimer);
+				autoSlideTimer = null;
+			}
+		}
+
+		if (nextBtn) {
+			nextBtn.addEventListener('click', function () {
+				nextSlide();
+				startAutoSlide();
+			});
+		}
+
+		if (prevBtn) {
+			prevBtn.addEventListener('click', function () {
+				prevSlide();
+				startAutoSlide();
+			});
+		}
+
+		// Tạm dừng tự chạy khi người dùng rê chuột vào slide để xem/đọc
+		slider.parentElement.addEventListener('mouseenter', stopAutoSlide);
+		slider.parentElement.addEventListener('mouseleave', startAutoSlide);
+		slider.parentElement.addEventListener('touchstart', stopAutoSlide, { passive: true });
+		slider.parentElement.addEventListener('touchend', startAutoSlide, { passive: true });
+
+		// Khởi chạy tự động
+		startAutoSlide();
+	}
+
+
 
 	function initMobileMenu() {
 		var toggle = document.getElementById('ttw-menu-toggle');
@@ -213,4 +305,110 @@
 			}
 		});
 	}
+
+	function initProductCategoryFilter() {
+		var filterNav = document.getElementById('ttw-category-filter');
+		var grid = document.getElementById('ttw-product-grid');
+		var emptyState = document.getElementById('ttw-filter-empty');
+		if (!filterNav || !grid) {
+			return;
+		}
+
+		var tabs = filterNav.querySelectorAll('.ttw-category-tab');
+		var cards = grid.querySelectorAll('.ttw-card-bento');
+
+		function applyFilter(filterVal) {
+			var visibleCount = 0;
+			cards.forEach(function (card) {
+				var categories = (card.getAttribute('data-category') || '').split(' ');
+				if (filterVal === 'all' || categories.indexOf(filterVal) !== -1) {
+					card.style.display = '';
+					card.style.opacity = '0';
+					card.style.transform = 'translateY(12px)';
+					setTimeout(function () {
+						card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+						card.style.opacity = '1';
+						card.style.transform = 'translateY(0)';
+					}, 10);
+					visibleCount++;
+				} else {
+					card.style.display = 'none';
+				}
+			});
+
+			if (emptyState) {
+				emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+			}
+		}
+
+		tabs.forEach(function (tab) {
+			tab.addEventListener('click', function () {
+				tabs.forEach(function (t) {
+					t.classList.remove('active');
+				});
+				tab.classList.add('active');
+				var filterVal = tab.getAttribute('data-filter') || 'all';
+				applyFilter(filterVal);
+			});
+		});
+	}
+
+	function initProjectFilter() {
+		var filterNav = document.getElementById('ttw-project-filter');
+		var grid = document.getElementById('ttw-project-grid');
+		var emptyState = document.getElementById('ttw-project-empty');
+		var loadMoreBtn = document.getElementById('ttw-btn-loadmore');
+		if (!filterNav || !grid) {
+			return;
+		}
+
+		var tabs = filterNav.querySelectorAll('.ttw-project-filter-tab');
+		var cards = grid.querySelectorAll('.ttw-project-card');
+
+		function applyFilter(filterVal) {
+			var visibleCount = 0;
+			cards.forEach(function (card) {
+				var categories = (card.getAttribute('data-category') || '').split(' ');
+				if (filterVal === 'all' || categories.indexOf(filterVal) !== -1) {
+					card.style.display = '';
+					card.style.opacity = '0';
+					card.style.transform = 'translateY(12px)';
+					setTimeout(function () {
+						card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+						card.style.opacity = '1';
+						card.style.transform = 'translateY(0)';
+					}, 10);
+					visibleCount++;
+				} else {
+					card.style.display = 'none';
+				}
+			});
+
+			if (emptyState) {
+				emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+			}
+		}
+
+		tabs.forEach(function (tab) {
+			tab.addEventListener('click', function () {
+				tabs.forEach(function (t) {
+					t.classList.remove('active');
+				});
+				tab.classList.add('active');
+				var filterVal = tab.getAttribute('data-filter') || 'all';
+				applyFilter(filterVal);
+			});
+		});
+
+		if (loadMoreBtn) {
+			loadMoreBtn.addEventListener('click', function () {
+				loadMoreBtn.textContent = 'ĐÃ TẢI TẤT CẢ CÔNG TRÌNH';
+				loadMoreBtn.disabled = true;
+				loadMoreBtn.style.opacity = '0.7';
+				loadMoreBtn.style.cursor = 'default';
+			});
+		}
+	}
 })();
+
+

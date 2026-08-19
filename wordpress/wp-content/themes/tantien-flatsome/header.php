@@ -35,7 +35,7 @@
 			</nav>
 
 			<div class="ttw-header-actions">
-				<a class="ttw-header-cta" href="<?php echo esc_url( ttw_consult_url() ); ?>">Nhận tư vấn</a>
+				<a class="ttw-header-cta" href="<?php echo esc_url( ttw_consult_url() ); ?>">Liên hệ tư vấn</a>
 
 				<button class="ttw-menu-toggle" id="ttw-menu-toggle" aria-label="Menu" aria-expanded="false">
 					<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -57,12 +57,12 @@
 					'container'      => false,
 					'menu_class'     => '',
 					'fallback_cb'    => 'ttw_primary_menu_fallback',
-					'depth'          => 1,
+					'depth'          => 2,
 				) );
 				?>
 			</div>
 			<div class="ttw-mobile-nav-footer">
-				<a class="ttw-mobile-nav-cta" href="<?php echo esc_url( ttw_consult_url() ); ?>">Nhận tư vấn</a>
+				<a class="ttw-mobile-nav-cta" href="<?php echo esc_url( ttw_consult_url() ); ?>">Liên hệ tư vấn</a>
 			</div>
 		</nav>
 	</header>
