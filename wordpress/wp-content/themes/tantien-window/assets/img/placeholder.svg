@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400">
-  <rect width="640" height="400" fill="#f5f6f8"/>
-  <g fill="none" stroke="#d7dae0" stroke-width="4">
-    <rect x="40" y="40" width="560" height="320" rx="12"/>
-  </g>
-  <text x="320" y="205" font-family="Arial, sans-serif" font-size="22" fill="#a6aab3" text-anchor="middle">Tân Tiến Window</text>
-</svg>

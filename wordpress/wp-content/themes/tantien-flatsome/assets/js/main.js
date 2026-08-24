@@ -15,6 +15,7 @@
 		initQuotesSlider();
 		initProductCategoryFilter();
 		initProjectFilter();
+		initFacebookWidget();
 	});
 
 	function initQuotesSlider() {
@@ -95,10 +96,12 @@
 		}
 
 		// Tạm dừng tự chạy khi người dùng rê chuột vào slide để xem/đọc
-		slider.parentElement.addEventListener('mouseenter', stopAutoSlide);
-		slider.parentElement.addEventListener('mouseleave', startAutoSlide);
-		slider.parentElement.addEventListener('touchstart', stopAutoSlide, { passive: true });
-		slider.parentElement.addEventListener('touchend', startAutoSlide, { passive: true });
+		if (slider && slider.parentElement) {
+			slider.parentElement.addEventListener('mouseenter', stopAutoSlide);
+			slider.parentElement.addEventListener('mouseleave', startAutoSlide);
+			slider.parentElement.addEventListener('touchstart', stopAutoSlide, { passive: true });
+			slider.parentElement.addEventListener('touchend', startAutoSlide, { passive: true });
+		}
 
 		// Khởi chạy tự động
 		startAutoSlide();
@@ -113,16 +116,27 @@
 		if (!toggle || !nav) {
 			return;
 		}
+
+		var savedScrollY = 0;
+
 		function openNav() {
+			savedScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
 			nav.classList.add('open');
 			toggle.setAttribute('aria-expanded', 'true');
-			document.body.style.overflow = 'hidden';
+			document.documentElement.classList.add('ttw-menu-open');
+			document.body.classList.add('ttw-menu-open');
+			document.body.style.top = '-' + savedScrollY + 'px';
 		}
+
 		function closeNav() {
 			nav.classList.remove('open');
 			toggle.setAttribute('aria-expanded', 'false');
-			document.body.style.overflow = '';
+			document.documentElement.classList.remove('ttw-menu-open');
+			document.body.classList.remove('ttw-menu-open');
+			document.body.style.top = '';
+			window.scrollTo(0, savedScrollY);
 		}
+
 		toggle.addEventListener('click', function () {
 			if (nav.classList.contains('open')) {
 				closeNav();
@@ -237,7 +251,7 @@
 
 		function animate(counter) {
 			var target = parseInt(counter.getAttribute('data-count'), 10) || 0;
-			var duration = 1800;
+			var duration = 1500;
 			var start = null;
 
 			function step(timestamp) {
@@ -453,6 +467,54 @@
 				loadMoreBtn.style.cursor = 'default';
 			});
 		}
+	}
+
+	function initFacebookWidget() {
+		var fbContainers = document.querySelectorAll('.fb-page');
+		var fbIframes = document.querySelectorAll('.ttw-sidebar iframe[src*="facebook.com"], .widget iframe[src*="facebook.com"]');
+
+		function refitFacebook() {
+			fbContainers.forEach(function (el) {
+				var parentWidth = el.parentElement ? el.parentElement.clientWidth : 0;
+				if (parentWidth > 0) {
+					el.setAttribute('data-width', Math.min(500, Math.max(180, Math.floor(parentWidth))));
+					el.setAttribute('data-adapt-container-width', 'true');
+				}
+			});
+			if (window.FB && window.FB.XFBML) {
+				window.FB.XFBML.parse();
+			}
+
+			fbIframes.forEach(function (iframe) {
+				var container = iframe.parentElement;
+				if (!container) return;
+				var containerWidth = container.clientWidth;
+				var iframeNaturalWidth = parseInt(iframe.getAttribute('width'), 10) || 340;
+				var iframeNaturalHeight = parseInt(iframe.getAttribute('height'), 10) || parseInt(iframe.style.height, 10) || 250;
+				if (containerWidth > 0 && containerWidth < iframeNaturalWidth) {
+					var scale = containerWidth / iframeNaturalWidth;
+					iframe.style.transform = 'scale(' + scale + ')';
+					iframe.style.transformOrigin = 'top left';
+					iframe.style.width = iframeNaturalWidth + 'px';
+					iframe.style.height = iframeNaturalHeight + 'px';
+					container.style.height = Math.ceil(iframeNaturalHeight * scale) + 'px';
+					container.style.overflow = 'hidden';
+				} else {
+					iframe.style.transform = 'none';
+					iframe.style.width = '100%';
+					iframe.style.height = iframeNaturalHeight + 'px';
+					container.style.height = 'auto';
+					container.style.overflow = 'visible';
+				}
+			});
+		}
+
+		refitFacebook();
+		setTimeout(refitFacebook, 1000);
+		window.addEventListener('resize', function () {
+			clearTimeout(window._fbResizeTimer);
+			window._fbResizeTimer = setTimeout(refitFacebook, 200);
+		});
 	}
 })();
 

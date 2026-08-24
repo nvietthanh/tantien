@@ -7,7 +7,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'TTW_FLATSOME_VERSION', '1.1.1' );
+define( 'TTW_FLATSOME_VERSION', '1.3.24' );
+
+
+
 
 
 
@@ -27,6 +30,7 @@ add_filter( 'query_vars', function( $vars ) {
  */
 add_filter( 'template_include', function( $template ) {
 	if ( is_page( 'tuyen-dung' ) || is_category( 'tuyen-dung' ) || ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $_SERVER['REQUEST_URI'], '/tuyen-dung' ) ) ) {
+
 		$custom_careers = get_stylesheet_directory() . '/page-tuyen-dung.php';
 		if ( file_exists( $custom_careers ) ) {
 			return $custom_careers;
@@ -157,7 +161,20 @@ function ttw_breadcrumb() {
 		yoast_breadcrumb( '<div class="ttw-breadcrumb">', '</div>' );
 		return;
 	}
-	echo '<div class="ttw-breadcrumb"><a href="' . esc_url( home_url( '/' ) ) . '">Trang chủ</a></div>';
+	$crumbs = array();
+	$crumbs[] = '<a href="' . esc_url( home_url( '/' ) ) . '">Trang chủ</a>';
+	if ( is_single() ) {
+		$cats = get_the_category();
+		if ( ! empty( $cats ) ) {
+			$crumbs[] = '<a href="' . esc_url( get_category_link( $cats[0]->term_id ) ) . '">' . esc_html( $cats[0]->name ) . '</a>';
+		}
+		$crumbs[] = '<span>' . esc_html( wp_trim_words( get_the_title(), 8 ) ) . '</span>';
+	} elseif ( is_page() ) {
+		$crumbs[] = '<span>' . esc_html( get_the_title() ) . '</span>';
+	} elseif ( is_category() ) {
+		$crumbs[] = '<span>' . esc_html( single_cat_title( '', false ) ) . '</span>';
+	}
+	echo '<div class="ttw-breadcrumb">' . implode( '<span class="ttw-sep"> / </span>', $crumbs ) . '</div>';
 }
 
 function ttw_page_hero_title() {
@@ -402,6 +419,7 @@ function ttw_flatsome_enqueue_scripts() {
 	);
 }
 add_action( 'wp_enqueue_scripts', 'ttw_flatsome_enqueue_scripts', 9999 );
+add_action( 'ux_builder_enqueue_scripts', 'ttw_flatsome_enqueue_scripts', 9999 );
 
 
 // Hàm nạp danh sách các Bài Viết từ Database cho ô Select của UX Builder
@@ -1733,7 +1751,7 @@ function ttw_register_shortcodes() {
 						<div class="ttw-stat<?php echo 0 === $i ? '' : ' ttw-stat-divider'; ?>">
 							<div class="ttw-stat-number">
 								<?php if ( null !== $target_num && $target_num > 0 ) : ?>
-									<span class="ttw-count" data-count="<?php echo esc_attr( $target_num ); ?>">0</span><?php echo esc_html( $suffix ); ?>
+									<span class="ttw-count" data-count="<?php echo esc_attr( $target_num ); ?>"><?php echo esc_html( number_format_i18n( $target_num ) ); ?></span><?php echo esc_html( $suffix ); ?>
 								<?php else : ?>
 									<?php echo esc_html( $raw_val ); ?>
 								<?php endif; ?>
@@ -1928,15 +1946,14 @@ function ttw_register_shortcodes() {
 		?>
 		<section class="ttw-section ttw-section-gray" id="san-pham">
 			<div class="container">
-				<div class="ttw-section-row ttw-animate ttw-fade-up">
-					<div>
+				<div class="ttw-products-header ttw-animate ttw-fade-up">
+					<div class="ttw-products-header-main">
 						<h2 class="ttw-section-title"><?php echo esc_html($a['heading']); ?></h2>
 						<?php if ( ! empty( $a['desc'] ) ) : ?>
 							<p class="ttw-section-desc"><?php echo esc_html($a['desc']); ?></p>
 						<?php endif; ?>
-
 					</div>
-					<a class="ttw-textlink" href="<?php echo esc_url(ttw_shop_url()); ?>">Xem tất cả
+					<a class="ttw-textlink ttw-products-all-btn" href="<?php echo esc_url(ttw_shop_url()); ?>">Xem tất cả
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M5 12h14" />
 							<path d="M12 5l7 7-7 7" />
@@ -1961,17 +1978,35 @@ function ttw_register_shortcodes() {
 						$product_img = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
 					?>
 						<a class="ttw-showcase-card" href="<?php the_permalink(); ?>">
-							<?php if ($product_img) : ?>
-								<img src="<?php echo esc_url($product_img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
-							<?php else : ?>
-								<img src="<?php echo esc_url(get_stylesheet_directory_uri() . '/assets/img/placeholder.svg'); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
-							<?php endif; ?>
+							<div class="ttw-showcase-img-wrap">
+								<?php if ($product_img) : ?>
+									<img src="<?php echo esc_url($product_img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
+								<?php else : ?>
+									<img src="<?php echo esc_url(get_stylesheet_directory_uri() . '/assets/img/placeholder.svg'); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
+								<?php endif; ?>
+							</div>
 							<div class="ttw-showcase-overlay"></div>
 							<div class="ttw-showcase-body">
-								<h3><?php the_title(); ?></h3>
+								<h3 class="ttw-showcase-title"><?php the_title(); ?></h3>
+								<span class="ttw-showcase-btn">
+									Chi tiết
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+										<path d="M5 12h14" />
+										<path d="M12 5l7 7-7 7" />
+									</svg>
+								</span>
 							</div>
 						</a>
 					<?php endwhile; wp_reset_postdata(); ?>
+				</div>
+
+				<div class="ttw-products-action ttw-animate ttw-fade-up">
+					<a class="ttw-textlink" href="<?php echo esc_url(ttw_shop_url()); ?>">Xem tất cả sản phẩm
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M5 12h14" />
+							<path d="M12 5l7 7-7 7" />
+						</svg>
+					</a>
 				</div>
 			</div>
 		</section>
