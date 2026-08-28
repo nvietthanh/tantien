@@ -2,7 +2,8 @@
 /**
  * Header template for tantien-flatsome.
  *
- * @package TantienFlatsome
+ * @package          TantienFlatsome
+ * @flatsome-version 3.16.0
  */
 ?>
 <!doctype html>

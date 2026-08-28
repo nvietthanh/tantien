@@ -2,7 +2,8 @@
 /**
  * Single post template cho tantien-flatsome.
  *
- * @package TantienFlatsome
+ * @package          TantienFlatsome
+ * @flatsome-version 3.16.0
  */
 
 get_header();

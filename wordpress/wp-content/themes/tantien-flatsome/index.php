@@ -2,7 +2,8 @@
 /**
  * Fallback template.
  *
- * @package TantienWindow
+ * @package          TantienWindow
+ * @flatsome-version 3.16.0
  */
 
 get_header();

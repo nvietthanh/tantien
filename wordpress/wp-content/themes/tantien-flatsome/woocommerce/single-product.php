@@ -2,7 +2,9 @@
 /**
  * Single Product Template - Tân Tiến Window (Figma Node 1:2621)
  *
- * @package TantienWindow
+ * @package          TantienWindow
+ * @version          1.6.4
+ * @flatsome-version 3.16.0
  */
 
 defined( 'ABSPATH' ) || exit;

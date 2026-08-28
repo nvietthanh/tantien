@@ -1,8 +1,10 @@
 <?php
 /**
- * Product card (loop).
+ * Product card (loop) - Tân Tiến Window custom.
  *
- * @package TantienWindow
+ * @package          TantienWindow
+ * @version          9.4.0
+ * @flatsome-version 3.19.7
  */
 
 defined( 'ABSPATH' ) || exit;

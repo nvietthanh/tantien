@@ -2,7 +2,8 @@
 /**
  * Comments template.
  *
- * @package TantienWindow
+ * @package          TantienWindow
+ * @flatsome-version 3.16.0
  */
 
 if ( post_password_required() ) {

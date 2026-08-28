@@ -2,7 +2,8 @@
 /**
  * Footer template for tantien-flatsome.
  *
- * @package TantienFlatsome
+ * @package          TantienFlatsome
+ * @flatsome-version 3.16.0
  */
 ?>
 	<footer class="ttw-footer">
