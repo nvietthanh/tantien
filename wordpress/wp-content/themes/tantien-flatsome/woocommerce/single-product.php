@@ -212,13 +212,13 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 			</section>
 		<?php endif; ?>
 
-		<!-- 4. Section Sản phẩm tương tự (3 bài từ DB cùng danh mục) -->
+		<!-- 4. Section Sản phẩm tương tự (4 bài từ DB cùng danh mục) -->
 		<?php
 		$cats = wp_get_post_terms( get_the_ID(), 'product_cat', array( 'fields' => 'ids' ) );
 		$rel_args = array(
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => 3,
+			'posts_per_page' => 4,
 			'post__not_in'   => array( get_the_ID() ),
 			'orderby'        => 'rand',
 		);
@@ -233,7 +233,7 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 		}
 		$rel_query = new WP_Query( $rel_args );
 
-		// Fallback nếu không tìm thấy cùng danh mục thì lấy 3 sản phẩm mới nhất
+		// Fallback nếu không tìm thấy cùng danh mục thì lấy 4 sản phẩm mới nhất
 		if ( ! $rel_query->have_posts() ) {
 			$rel_args['tax_query'] = array();
 			$rel_query = new WP_Query( $rel_args );

@@ -17,13 +17,69 @@ define( 'TTW_FLATSOME_VERSION', '1.3.24' );
 
 
 /**
- * Đăng ký query var cho phân trang sản phẩm
+ * Đăng ký query var cho phân trang sản phẩm và trang tĩnh
  */
 add_filter( 'query_vars', function( $vars ) {
 	$vars[] = 'page';
 	$vars[] = 'paged';
 	return $vars;
 } );
+
+/**
+ * Lấy số trang hiện tại chuẩn xác trên mọi loại trang (Page, Archive, Taxonomy, Custom Shortcode)
+ * Hỗ trợ nhận diện cả /page/2/ (query var page/paged), ?paged=2, ?page=2
+ */
+if ( ! function_exists( 'ttw_get_current_paged' ) ) {
+	function ttw_get_current_paged() {
+		$paged = 1;
+		if ( get_query_var( 'paged' ) ) {
+			$paged = (int) get_query_var( 'paged' );
+		} elseif ( get_query_var( 'page' ) ) {
+			$paged = (int) get_query_var( 'page' );
+		} elseif ( isset( $_GET['paged'] ) && (int) $_GET['paged'] > 0 ) {
+			$paged = (int) $_GET['paged'];
+		} elseif ( isset( $_GET['page'] ) && (int) $_GET['page'] > 0 ) {
+			$paged = (int) $_GET['page'];
+		}
+		return max( 1, $paged );
+	}
+}
+
+/**
+ * Tạo URL phân trang chuẩn SEO Pretty Permalinks:
+ * - Trang 1: /san-pham-2/ (kèm query params nếu có)
+ * - Trang 2+: /san-pham-2/page/2/ (kèm query params nếu có)
+ */
+if ( ! function_exists( 'ttw_get_pagination_url' ) ) {
+	function ttw_get_pagination_url( $page_num = 1, $query_params = array(), $custom_base = '' ) {
+		$page_num = max( 1, (int) $page_num );
+		$base_url = ! empty( $custom_base ) ? $custom_base : get_permalink();
+		
+		// Loại bỏ query string và /page/X/ nếu có trong base_url
+		$base_url = strtok( $base_url, '?' );
+		$base_url = preg_replace( '#/page/[0-9]+/?$#', '', untrailingslashit( $base_url ) );
+
+		$using_permalinks = (bool) get_option( 'permalink_structure' );
+
+		if ( $using_permalinks ) {
+			$url = trailingslashit( $base_url );
+			if ( $page_num > 1 ) {
+				$url .= 'page/' . $page_num . '/';
+			}
+		} else {
+			$url = $base_url;
+			if ( $page_num > 1 ) {
+				$query_params['paged'] = $page_num;
+			}
+		}
+
+		if ( ! empty( $query_params ) ) {
+			$url = add_query_arg( $query_params, $url );
+		}
+
+		return $url;
+	}
+}
 
 /**
  * Filter ép sử dụng template custom cho Single Product và Category Tuyển Dụng
@@ -62,10 +118,16 @@ add_filter( 'template_include', function( $template ) {
 
 
 /**
+ * Nạp module Cài đặt Footer & Hotline
+ */
+require_once get_stylesheet_directory() . '/inc/theme-settings.php';
+
+/**
  * Company helpers & Theme Functions
  */
 function ttw_phone() {
-	return apply_filters( 'ttw_phone', '0907.247.111' );
+	$saved_phone = function_exists( 'ttw_get_footer_setting' ) ? ttw_get_footer_setting( 'hotline_main', '0907.247.111' ) : '0907.247.111';
+	return apply_filters( 'ttw_phone', $saved_phone );
 }
 
 function ttw_phone_link() {
@@ -77,7 +139,8 @@ function ttw_email() {
 }
 
 function ttw_zalo_link() {
-	return apply_filters( 'ttw_zalo_link', 'https://zalo.me/0907247111' );
+	$saved_zalo = function_exists( 'ttw_get_footer_setting' ) ? ttw_get_footer_setting( 'cta_zalo', 'https://zalo.me/0907247111' ) : 'https://zalo.me/0907247111';
+	return apply_filters( 'ttw_zalo_link', $saved_zalo );
 }
 
 function ttw_consult_url() {
@@ -133,16 +196,38 @@ function ttw_primary_menu_fallback() {
 }
 
 function ttw_logo() {
-	$logo = get_custom_logo();
-	if ( $logo ) {
-		return $logo;
-	}
-
 	$site_url  = esc_url( home_url( '/' ) );
 	$site_name = esc_html( apply_filters( 'ttw_site_name', 'Tân Tiến Window' ) );
-	$logo_url  = get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg';
 
-	return '<a class="ttw-logo" href="' . $site_url . '"><img src="' . esc_url( $logo_url ) . '" alt="' . $site_name . '" /></a>';
+	// 1. Kiểm tra logo tải lên từ Cài đặt Logo riêng
+	$logo_url = function_exists( 'ttw_get_logo_setting' ) ? ttw_get_logo_setting() : '';
+
+	// 2. Kiểm tra logo từ WordPress Customizer (Giao diện -> Tùy biến -> Site Identity)
+	if ( empty( $logo_url ) ) {
+		$custom_logo_id = get_theme_mod( 'custom_logo' );
+		if ( $custom_logo_id ) {
+			$logo_url = wp_get_attachment_image_url( $custom_logo_id, 'full' );
+		}
+	}
+
+	// 3. Fallback: Logo mặc định của Theme
+	if ( empty( $logo_url ) ) {
+		$logo_url = get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg';
+	}
+
+	// 4. Logo khi Hover (nếu có)
+	$hover_logo = function_exists( 'ttw_get_logo_hover_setting' ) ? ttw_get_logo_hover_setting() : '';
+
+	$html  = '<div class="ttw-header-logo-wrap' . ( ! empty( $hover_logo ) ? ' has-hover-logo' : '' ) . '">';
+	$html .= '<a class="ttw-logo" href="' . $site_url . '">';
+	$html .= '<img class="ttw-logo-main" src="' . esc_url( $logo_url ) . '" alt="' . $site_name . '" />';
+	if ( ! empty( $hover_logo ) ) {
+		$html .= '<img class="ttw-logo-hover" src="' . esc_url( $hover_logo ) . '" alt="' . $site_name . '" />';
+	}
+	$html .= '</a>';
+	$html .= '</div>';
+
+	return $html;
 }
 
 function ttw_product_short_description( $product ) {
@@ -2401,7 +2486,7 @@ function ttw_register_shortcodes() {
 			'order'          => 'DESC',
 		), $atts );
 
-		$ttw_paged    = isset( $_GET['paged'] ) && (int) $_GET['paged'] > 0 ? (int) $_GET['paged'] : 1;
+		$ttw_paged    = ttw_get_current_paged();
 		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
 
 		$query_args = array(
@@ -2467,11 +2552,10 @@ function ttw_register_shortcodes() {
 				<nav class="ttw-pagination-figma ttw-animate ttw-fade-up" aria-label="Phân trang công trình" style="margin-top: 20px;">
 					<?php
 					$total_pages = $projects_query->max_num_pages;
-					$base_url    = strtok( get_permalink(), '?' );
-					$page_base   = ( 'all' !== $ttw_curr_cat ) ? add_query_arg( 'cat', $ttw_curr_cat, $base_url ) : $base_url;
+					$cat_params  = ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) ? array( 'cat' => $ttw_curr_cat ) : array();
 
 					for ( $i = 1; $i <= $total_pages; $i++ ) :
-						$page_url  = ( 1 === $i ) ? $page_base : add_query_arg( 'paged', $i, $page_base );
+						$page_url  = ttw_get_pagination_url( $i, $cat_params );
 						$is_active = ( $i === $ttw_paged );
 						?>
 						<a href="<?php echo esc_url( $page_url ); ?>"
@@ -2482,7 +2566,7 @@ function ttw_register_shortcodes() {
 					<?php endfor; ?>
 
 					<?php if ( $ttw_paged < $total_pages ) : ?>
-						<a href="<?php echo esc_url( add_query_arg( 'paged', $ttw_paged + 1, $page_base ) ); ?>"
+						<a href="<?php echo esc_url( ttw_get_pagination_url( $ttw_paged + 1, $cat_params ) ); ?>"
 						   class="ttw-page-btn ttw-page-next"
 						   aria-label="Trang tiếp theo">
 							<svg width="6" height="10" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -2554,7 +2638,7 @@ function ttw_register_shortcodes() {
 			'order'          => 'DESC',
 		), $atts );
 
-		$ttw_paged    = isset( $_GET['paged'] ) && (int) $_GET['paged'] > 0 ? (int) $_GET['paged'] : 1;
+		$ttw_paged    = ttw_get_current_paged();
 		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
 
 		$query_args = array(
@@ -2605,6 +2689,8 @@ function ttw_register_shortcodes() {
 					<ul class="ttw-news-filter-list">
 						<?php
 						$base_url = strtok( get_permalink(), '?' );
+						$base_url = preg_replace( '#/page/[0-9]+/?$#', '', untrailingslashit( $base_url ) );
+						$base_url = trailingslashit( $base_url );
 						foreach ( $ttw_categories as $ttw_cat ) :
 							$cat_slug   = $ttw_cat['slug'];
 							$is_cat_act = ( $ttw_curr_cat === $cat_slug );
@@ -2734,10 +2820,10 @@ function ttw_register_shortcodes() {
 					<nav class="ttw-news-pagination ttw-animate ttw-fade-up" aria-label="Phân trang tin tức">
 						<?php
 						$total_pages = $news_query->max_num_pages;
-						$page_base   = ( 'all' !== $ttw_curr_cat ) ? add_query_arg( 'cat', $ttw_curr_cat, $base_url ) : $base_url;
+						$cat_params  = ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) ? array( 'cat' => $ttw_curr_cat ) : array();
 
 						for ( $i = 1; $i <= $total_pages; $i++ ) :
-							$page_url  = ( 1 === $i ) ? $page_base : add_query_arg( 'paged', $i, $page_base );
+							$page_url  = ttw_get_pagination_url( $i, $cat_params );
 							$is_active = ( $i === $ttw_paged );
 							?>
 							<a href="<?php echo esc_url( $page_url ); ?>"
@@ -2748,7 +2834,7 @@ function ttw_register_shortcodes() {
 						<?php endfor; ?>
 
 						<?php if ( $ttw_paged < $total_pages ) : ?>
-							<a href="<?php echo esc_url( add_query_arg( 'paged', $ttw_paged + 1, $page_base ) ); ?>"
+							<a href="<?php echo esc_url( ttw_get_pagination_url( $ttw_paged + 1, $cat_params ) ); ?>"
 							   class="ttw-news-page-btn"
 							   aria-label="Trang tiếp theo">
 								<svg width="6" height="10" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2786,7 +2872,7 @@ function ttw_register_shortcodes() {
 			$per_page = 6;
 		}
 
-		$ttw_paged    = isset( $_GET['paged'] ) && (int) $_GET['paged'] > 0 ? (int) $_GET['paged'] : 1;
+		$ttw_paged    = ttw_get_current_paged();
 		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
 
 
@@ -2840,6 +2926,8 @@ function ttw_register_shortcodes() {
 			<ul class="ttw-category-list" id="ttw-category-filter">
 				<?php
 				$base_url = strtok( get_permalink(), '?' );
+				$base_url = preg_replace( '#/page/[0-9]+/?$#', '', untrailingslashit( $base_url ) );
+				$base_url = trailingslashit( $base_url );
 				foreach ( $ttw_categories as $ttw_cat ) :
 					$cat_slug   = $ttw_cat['slug'];
 					$is_cat_act = ( $ttw_curr_cat === $cat_slug );
@@ -2907,10 +2995,10 @@ function ttw_register_shortcodes() {
 			<nav class="ttw-pagination-figma ttw-animate ttw-fade-up" aria-label="Phân trang sản phẩm">
 				<?php
 				$total_pages = $ttw_products_query->max_num_pages;
-				$page_base   = ( 'all' !== $ttw_curr_cat ) ? add_query_arg( 'cat', $ttw_curr_cat, $base_url ) : $base_url;
+				$cat_params  = ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) ? array( 'cat' => $ttw_curr_cat ) : array();
 
 				for ( $i = 1; $i <= $total_pages; $i++ ) :
-					$page_url  = ( 1 === $i ) ? $page_base : add_query_arg( 'paged', $i, $page_base );
+					$page_url  = ttw_get_pagination_url( $i, $cat_params );
 					$is_active = ( $i === $ttw_paged );
 					?>
 					<a href="<?php echo esc_url( $page_url ); ?>"
@@ -2921,7 +3009,7 @@ function ttw_register_shortcodes() {
 				<?php endfor; ?>
 
 				<?php if ( $ttw_paged < $total_pages ) : ?>
-					<a href="<?php echo esc_url( add_query_arg( 'paged', $ttw_paged + 1, $page_base ) ); ?>"
+					<a href="<?php echo esc_url( ttw_get_pagination_url( $ttw_paged + 1, $cat_params ) ); ?>"
 					   class="ttw-page-btn ttw-page-next"
 					   aria-label="Trang tiếp theo">
 						<svg width="6" height="10" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -3033,9 +3121,9 @@ function ttw_register_shortcodes() {
 				$img_url = $img_src ? $img_src[0] : '';
 				$img_html = $img_url ? sprintf('<div class="ttw-quote-img-box"><img src="%s" alt="%s" loading="lazy"></div>', esc_url($img_url), esc_attr($t[0])) : '';
 				$inner_content .= sprintf(
-					'<div class="ttw-quote"><svg class="ttw-quote-mark" width="34" height="26" viewBox="0 0 45 32" fill="currentColor" aria-hidden="true"><path d="M0 32V20.4C0 9.1 6.1 2.7 17.6 0l2.1 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H0zm25.3 0V20.4C25.3 9.1 31.4 2.7 42.9 0L45 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H25.3z" /></svg><p class="ttw-quote-text">%s</p>%s<div class="ttw-quote-author"><strong>%s</strong><span>%s</span></div></div>',
-					esc_html($t[2]),
+					'<div class="ttw-quote">%s<div class="ttw-quote-content"><svg class="ttw-quote-mark" width="34" height="26" viewBox="0 0 45 32" fill="currentColor" aria-hidden="true"><path d="M0 32V20.4C0 9.1 6.1 2.7 17.6 0l2.1 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H0zm25.3 0V20.4C25.3 9.1 31.4 2.7 42.9 0L45 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H25.3z" /></svg><p class="ttw-quote-text">%s</p><div class="ttw-quote-author"><strong>%s</strong><span>%s</span></div></div></div>',
 					$img_html,
+					esc_html($t[2]),
 					esc_html($t[0]),
 					esc_html(strtoupper($t[1]))
 				);
@@ -3099,20 +3187,22 @@ function ttw_register_shortcodes() {
 		ob_start();
 		?>
 		<div class="ttw-quote">
-			<svg class="ttw-quote-mark" width="34" height="26" viewBox="0 0 45 32" fill="currentColor" aria-hidden="true">
-				<path d="M0 32V20.4C0 9.1 6.1 2.7 17.6 0l2.1 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H0zm25.3 0V20.4C25.3 9.1 31.4 2.7 42.9 0L45 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H25.3z" />
-			</svg>
-			<p class="ttw-quote-text"><?php echo esc_html($a['quote']); ?></p>
-			
 			<?php if ( ! empty( $img_url ) ) : ?>
 				<div class="ttw-quote-img-box">
 					<img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $a['author'] ); ?>" loading="lazy">
 				</div>
 			<?php endif; ?>
 
-			<div class="ttw-quote-author">
-				<strong><?php echo esc_html($a['author']); ?></strong>
-				<span><?php echo esc_html(strtoupper($a['role'])); ?></span>
+			<div class="ttw-quote-content">
+				<svg class="ttw-quote-mark" width="34" height="26" viewBox="0 0 45 32" fill="currentColor" aria-hidden="true">
+					<path d="M0 32V20.4C0 9.1 6.1 2.7 17.6 0l2.1 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H0zm25.3 0V20.4C25.3 9.1 31.4 2.7 42.9 0L45 5.2c-6.9 1.6-10.9 4.9-11.5 9.6h7.1V32H25.3z" />
+				</svg>
+				<p class="ttw-quote-text"><?php echo esc_html($a['quote']); ?></p>
+
+				<div class="ttw-quote-author">
+					<strong><?php echo esc_html($a['author']); ?></strong>
+					<span><?php echo esc_html(strtoupper($a['role'])); ?></span>
+				</div>
 			</div>
 		</div>
 		<?php

@@ -39,7 +39,7 @@ Tags: e-commerce, custom-logo, blog
     --ttw-radius-sm: 8px;
     --ttw-shadow: 0 4px 20px rgba(26, 26, 46, 0.08);
     --ttw-shadow-hover: 0 12px 32px rgba(26, 26, 46, 0.16);
-    --ttw-container: 1280px;
+    --ttw-container: auto;
     --ttw-transition: all 0.25s ease;
     --ttw-bg-white: #ffffff;
 }
@@ -227,6 +227,16 @@ header.ttw-header.scrolled,
     padding: 0 20px;
     max-width: var(--ttw-container);
     margin: 0 auto;
+    position: relative;
+}
+
+/* BM Windows Styled Logo Wrapper with Hover Slogan */
+.ttw-header-logo-wrap {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 50;
+    cursor: pointer;
 }
 
 .ttw-logo {
@@ -234,11 +244,45 @@ header.ttw-header.scrolled,
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
+    position: relative;
+    z-index: 52;
+    transition: transform 0.3s ease;
+}
+
+.ttw-header-logo-wrap:hover .ttw-logo {
+    transform: scale(1.02);
 }
 
 .ttw-logo img {
-    max-height: 52px;
+    max-height: 48px;
     width: auto;
+    display: block;
+}
+
+/* Hiệu ứng tráo đổi Logo khi có Hover Logo */
+.ttw-logo-main {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.ttw-logo-hover {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.3s ease;
+    pointer-events: none;
+}
+
+.ttw-header-logo-wrap.has-hover-logo:hover .ttw-logo-main {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.ttw-header-logo-wrap.has-hover-logo:hover .ttw-logo-hover {
+    opacity: 1;
+    visibility: visible;
 }
 
 .ttw-logo-text {
@@ -258,14 +302,14 @@ header.ttw-header.scrolled,
     color: var(--ttw-primary);
 }
 
-/* Navigation */
+/* Navigation - Phong cách BM Windows */
 .ttw-nav ul {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 0;
 }
 
 .ttw-nav li {
@@ -275,16 +319,29 @@ header.ttw-header.scrolled,
 
 .ttw-nav a {
     font-family: "Inter", sans-serif;
-    display: block;
-    padding: 8px 14px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.2px;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    height: 40px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: #3e4850;
-    border-radius: 0;
+    color: #2D3748;
     position: relative;
-    transition: color 0.2s ease;
+    transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+/* Vạch ngăn cách dọc tinh tế giữa các menu items (như BM Windows) */
+.ttw-nav>ul>li+li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 14px;
+    width: 1px;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Gạch chân (border-bottom) khi active hoặc hover */
@@ -292,13 +349,12 @@ header.ttw-header.scrolled,
     content: "";
     position: absolute;
     bottom: 0px;
-    left: 14px;
-    right: 14px;
+    left: 18px;
+    right: 18px;
     height: 2px;
     background-color: var(--ttw-primary);
-    border-radius: 1px;
     transform: scaleX(0);
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
     transform-origin: center;
 }
 
@@ -366,12 +422,14 @@ header.ttw-header.scrolled,
     font-weight: 600;
     font-size: 13px;
     line-height: 1.4;
+    height: unset;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: #1A1C1C !important;
     background: transparent;
     transition: all 0.2s ease;
     display: block;
+    align-content: center;
     border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
 
@@ -466,14 +524,14 @@ header.ttw-header.scrolled,
     align-items: center;
     justify-content: center;
     font-family: "Inter", sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.2px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
     color: var(--ttw-primary);
     border: 1px solid var(--ttw-primary);
     border-radius: 2px;
-    padding: 10px 18px;
+    padding: 11px 22px;
     line-height: 1;
     transition: var(--ttw-transition);
 }
@@ -780,8 +838,8 @@ body.ttw-menu-open {
     z-index: 2;
     width: 100%;
     max-width: var(--ttw-container);
+    padding: 0 clamp(32px, 6.5vw, 140px);
     margin: 0 auto;
-    padding: 0 20px;
 }
 
 .ttw-hero h1 {
@@ -791,13 +849,13 @@ body.ttw-menu-open {
     line-height: 1.12;
     color: var(--ttw-white) !important;
     text-transform: uppercase;
-    max-width: 780px;
+    max-width: 870px;
     margin-bottom: 20px;
     text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .ttw-hero p {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 500;
     color: var(--ttw-white) !important;
     max-width: 660px;
@@ -1070,7 +1128,7 @@ body.ttw-menu-open {
 .ttw-eyebrow {
     display: block;
     font-family: "Inter", sans-serif;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     letter-spacing: 1.2px;
     text-transform: uppercase;
@@ -1120,30 +1178,33 @@ body.ttw-menu-open {
 
 
 .ttw-products-container {
-    max-width: 1280px;
+    max-width: var(--ttw-container);
     margin: 0 auto;
-    padding: 30px 24px 80px;
+    padding: 30px clamp(16px, 3.5vw, 60px) 80px;
     display: flex;
     flex-direction: column;
     gap: 24px;
+    box-sizing: border-box;
 }
 
 @media (min-width: 1024px) {
     .ttw-products-container {
-        padding: 40px 24px 100px 24px;
+        padding: 40px clamp(24px, 4vw, 80px) 100px;
     }
 }
 
 /* 9.1 Hero Section (Figma node 1:2038) */
 .ttw-products-hero {
+    max-width: var(--ttw-container);
+    margin: 60px auto 0;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 24px;
-    padding: 20px 0 60px;
-    margin-top: 60px;
+    padding: 60px clamp(16px, 3.5vw, 60px) 40px;
+    box-sizing: border-box;
 }
 
 body.admin-bar .ttw-products-hero {
@@ -1205,7 +1266,7 @@ body.admin-bar .ttw-products-hero {
 .ttw-category-tab {
     font-family: "Inter", sans-serif;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -1391,7 +1452,7 @@ body.admin-bar .ttw-products-hero {
 
 .ttw-card-desc {
     font-family: "Inter", sans-serif;
-    font-size: 15px;
+    font-size: 17px;
     line-height: 1.6;
     color: #475569;
     margin: 0 0 24px;
@@ -1497,6 +1558,13 @@ body.admin-bar .ttw-products-hero {
 .ttw-page-next:hover svg {
     transform: translateX(2px);
     fill: var(--ttw-primary);
+}
+
+@media (min-width: 1536px) {
+    .ttw-product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 28px;
+    }
 }
 
 @media (max-width: 960px) {
@@ -1642,17 +1710,18 @@ body.admin-bar .ttw-products-hero {
 }
 
 .ttw-projects-container {
-    max-width: 1280px;
+    max-width: var(--ttw-container);
     margin: 0 auto;
-    padding: 0 24px 30px;
+    padding: 0 clamp(16px, 3.5vw, 60px) 40px;
     display: flex;
     flex-direction: column;
     gap: 32px;
+    box-sizing: border-box;
 }
 
 @media (min-width: 1024px) {
     .ttw-projects-container {
-        padding: 40px 80px 60px;
+        padding: 40px clamp(24px, 4vw, 80px) 80px;
     }
 }
 
@@ -1948,6 +2017,13 @@ body.admin-bar .ttw-products-hero {
     box-shadow: 0 4px 12px rgba(0, 101, 145, 0.2);
 }
 
+@media (min-width: 1536px) {
+    .ttw-project-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 28px;
+    }
+}
+
 @media (max-width: 960px) {
     .ttw-project-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -2199,15 +2275,15 @@ body.admin-bar .ttw-products-hero {
 
 
 .ttw-quote {
-    flex: 0 0 calc(33.333% - 16px);
-    min-width: 320px;
+    flex: 0 0 calc(25% - 18px);
+    min-width: 250px;
     scroll-snap-align: start;
     position: relative;
     display: flex;
     flex-direction: column;
     background: var(--ttw-white);
-    padding: 32px 28px;
-    border-radius: 14px;
+    padding: 22px 20px;
+    border-radius: 12px;
     border: 1px solid rgba(0, 0, 0, 0.06);
     overflow: hidden;
     transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -2248,10 +2324,17 @@ body.admin-bar .ttw-products-hero {
     background: linear-gradient(180deg, rgba(0, 60, 95, 0.85) 0%, rgba(10, 20, 35, 0.95) 100%);
 }
 
+.ttw-quote-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+}
+
 .ttw-quote-mark {
     position: absolute;
-    top: 24px;
-    right: 24px;
+    top: 0;
+    right: 0;
     color: var(--ttw-gray-light);
     opacity: 0.6;
 }
@@ -2262,19 +2345,20 @@ body.admin-bar .ttw-products-hero {
     font-size: 15px;
     line-height: 1.65;
     color: #374151;
-    margin: 0 0 24px;
-    padding-top: 4px;
+    margin: 0 0 20px;
+    padding-right: 40px;
+    flex: 1;
 }
 
 .ttw-quote-img-box {
     width: 100%;
     aspect-ratio: 4 / 3;
-    max-height: 240px;
     border-radius: 8px;
     overflow: hidden;
-    margin-top: auto;
-    margin-bottom: 18px;
+    margin-top: 0;
+    margin-bottom: 20px;
     background: #f3f4f6;
+    flex-shrink: 0;
 }
 
 .ttw-quote-img-box img {
@@ -2291,6 +2375,7 @@ body.admin-bar .ttw-products-hero {
 .ttw-quote-author {
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     padding-top: 16px;
+    margin-top: auto;
 }
 
 
@@ -2313,17 +2398,24 @@ body.admin-bar .ttw-products-hero {
 }
 
 
+@media (max-width: 1200px) {
+    .ttw-quote {
+        flex: 0 0 calc(33.333% - 16px);
+        min-width: 280px;
+    }
+}
+
 @media (max-width: 900px) {
     .ttw-quote {
         flex: 0 0 calc(50% - 12px);
-        min-width: 280px;
+        min-width: 260px;
     }
 }
 
 @media (max-width: 600px) {
     .ttw-quote {
         flex: 0 0 85%;
-        min-width: 260px;
+        min-width: 240px;
     }
 }
 
@@ -2647,13 +2739,16 @@ body.ux-builder-iframe .ttw-product-detail-page,
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 32px;
+    max-height: 84px;
+    overflow: hidden;
 }
 
 .ttw-pd-feat-item {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
+    height: 36px;
+    padding: 0 16px;
     background: var(--ttw-white);
     border: 1px solid rgba(190, 200, 210, 0.5);
     border-radius: 12px;
@@ -2662,6 +2757,7 @@ body.ux-builder-iframe .ttw-product-detail-page,
     font-weight: 600;
     letter-spacing: 0.1em;
     color: #1A1C1C;
+    box-sizing: border-box;
 }
 
 .ttw-pd-feat-item svg {
@@ -2904,7 +3000,7 @@ body.ux-builder-iframe .ttw-product-detail-page,
 
 @media (min-width: 1024px) {
     .ttw-pd-related-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
@@ -3004,6 +3100,10 @@ body.ux-builder-iframe .ttw-product-detail-page,
     animation-delay: 0.74s;
 }
 
+.ttw-pd-related-grid .ttw-card-bento:nth-child(4) {
+    animation-delay: 0.86s;
+}
+
 
 
 
@@ -3058,6 +3158,11 @@ body.ux-builder-iframe .ttw-product-detail-page,
 /* ==========================================================================
    14. News Page & Knowledge (Figma 1:2767)
    ========================================================================== */
+.ttw-page-main {
+    width: 100%;
+    min-height: calc(100vh - 200px);
+}
+
 .ttw-news-page {
     background-color: var(--ttw-bg-white);
     min-height: calc(100vh - 200px);
@@ -3139,7 +3244,7 @@ body.ux-builder header.ttw-header,
 .ttw-news-subtitle {
     font-family: "Inter", sans-serif;
     font-weight: 400;
-    font-size: clamp(14px, 2vw, 17px);
+    font-size: clamp(14px, 2vw, 18px);
     line-height: 1.6;
     color: #4A5568;
     max-width: 672px;
@@ -3179,7 +3284,7 @@ body.ux-builder header.ttw-header,
 .ttw-news-filter-tab {
     font-family: "Inter", sans-serif;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 14px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -3340,7 +3445,7 @@ body.ux-builder header.ttw-header,
 
 .ttw-featured-desc {
     font-family: "Inter", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.6;
     color: #4A5568;
     margin: 0 0 12px;
@@ -4321,30 +4426,55 @@ iframe[src*="facebook.com"] {
     align-items: center;
     justify-content: space-between;
     gap: 32px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 16px;
-    padding: 28px 36px;
+    max-width: 1280px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: 50px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(0, 32, 53, 0.5) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 18px;
+    padding: 26px 36px;
+    box-shadow: 0 20px 45px -10px rgba(0, 18, 36, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.ttw-footer-cta-band::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(94, 208, 250, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ttw-footer-cta-text {
+    position: relative;
+    z-index: 2;
 }
 
 .ttw-footer-cta-text h3 {
     font-family: "Montserrat", sans-serif;
-    font-size: 20px;
+    font-size: 21px;
     font-weight: 800;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
     color: #ffffff;
-    margin: 0 0 6px;
+    margin: 0 0 8px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
 .ttw-footer-cta-text p {
     font-family: "Inter", sans-serif;
     font-size: 14.5px;
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.88);
     margin: 0;
     max-width: 580px;
 }
@@ -4354,59 +4484,76 @@ iframe[src*="facebook.com"] {
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
 }
 
 .ttw-footer-cta-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px 22px;
+    gap: 9px;
+    padding: 13px 24px;
     border-radius: 50px;
     font-family: "Montserrat", sans-serif;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 700;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
     text-transform: uppercase;
     text-decoration: none !important;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    white-space: nowrap;
+}
+
+.ttw-footer-cta-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.ttw-footer-cta-btn:hover svg {
+    transform: scale(1.12);
 }
 
 .ttw-cta-call {
-    background: #ea2127;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: #ffffff !important;
-    border: 1.5px solid #ea2127;
-    box-shadow: 0 4px 14px rgba(234, 33, 39, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 24px -4px rgba(220, 38, 38, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .ttw-cta-call:hover {
-    background: #d0181e;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(234, 33, 39, 0.5);
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    transform: translateY(-2.5px);
+    box-shadow: 0 12px 28px -2px rgba(220, 38, 38, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .ttw-cta-zalo {
-    background: #0068ff;
+    background: linear-gradient(135deg, #0084ff 0%, #0062e0 100%);
     color: #ffffff !important;
-    border: 1.5px solid #0068ff;
-    box-shadow: 0 4px 14px rgba(0, 104, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 24px -4px rgba(0, 114, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .ttw-cta-zalo:hover {
-    background: #0056d6;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 104, 255, 0.5);
+    background: linear-gradient(135deg, #2b9aff 0%, #0077ff 100%);
+    transform: translateY(-2.5px);
+    box-shadow: 0 12px 28px -2px rgba(0, 114, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .ttw-cta-fb {
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .ttw-cta-fb:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.45);
+    transform: translateY(-2.5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 /* Bố cục 4 cột Unified Grid */
@@ -4745,6 +4892,7 @@ iframe[src*="facebook.com"] {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
+    max-width: 100%;
 }
 
 .woocommerce ul.products li.product {
@@ -5124,6 +5272,8 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 
 /* Values */
 .ttw-values {
+    max-width: 1280px;
+    margin: 0 auto;
     margin-top: 48px;
     border-top: 1px solid var(--ttw-gray-light);
 }
@@ -5160,7 +5310,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 }
 
 .ttw-value-desc {
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.5;
     color: var(--ttw-gray);
     margin: 0;
@@ -5179,7 +5329,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 }
 
 .ttw-projects-head p {
-    font-size: 16px;
+    font-size: 18px;
     color: var(--ttw-gray);
     margin: 0;
 }
@@ -5195,7 +5345,8 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     position: relative;
     display: block;
     overflow: hidden;
-    aspect-ratio: 744 / 600;
+    width: 100%;
+    height: 100%;
     transition: transform 0.4s ease;
 }
 
@@ -5203,12 +5354,13 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     transform: scale(1.01);
 }
 
-.ttw-project-small {
-    aspect-ratio: 368 / 296;
-}
-
 .ttw-project-large {
     grid-row: span 2;
+    aspect-ratio: 4 / 3;
+}
+
+.ttw-project-small {
+    height: 100%;
 }
 
 .ttw-project img {
@@ -5245,17 +5397,18 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 
 .ttw-project-cat {
     display: block;
-    font-size: 16px;
+    font-size: 18px;
     letter-spacing: 1.6px;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.8);
     margin-bottom: 8px;
+    font-weight: 600;
 }
 
 .ttw-project-body h3 {
     font-family: "Montserrat", sans-serif;
-    font-size: 28px;
-    font-weight: 400;
+    font-size: 30px;
+    font-weight: 600;
     letter-spacing: 1.4px;
     text-transform: uppercase;
     color: var(--ttw-white);
@@ -5387,7 +5540,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 }
 
 .ttw-step p {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.5;
     color: var(--ttw-gray);
     margin: 0;
@@ -5444,7 +5597,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 }
 
 .ttw-benefit p {
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.5;
     color: var(--ttw-gray);
     margin: 0;
@@ -5477,7 +5630,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 .ttw-products-header-main .ttw-section-desc {
     margin-bottom: 0;
     color: var(--ttw-gray);
-    font-size: 15.5px;
+    font-size: 18px;
     line-height: 1.65;
 }
 
@@ -5511,9 +5664,9 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     background: #0f172a;
     border: 1px solid rgba(226, 232, 240, 0.8);
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-                box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-                border-color 0.4s ease;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.4s ease;
     text-decoration: none !important;
 }
 
@@ -5524,7 +5677,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 }
 
 .ttw-showcase-img-wrap,
-.ttw-showcase-card > img {
+.ttw-showcase-card>img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -5533,7 +5686,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 }
 
 .ttw-showcase-img-wrap img,
-.ttw-showcase-card > img {
+.ttw-showcase-card>img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -5541,7 +5694,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 }
 
 .ttw-showcase-card:hover .ttw-showcase-img-wrap img,
-.ttw-showcase-card:hover > img {
+.ttw-showcase-card:hover>img {
     transform: scale(1.08);
 }
 
@@ -5588,7 +5741,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 .ttw-showcase-title,
 .ttw-showcase-body h3 {
     font-family: "Montserrat", sans-serif !important;
-    font-size: 15px !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
     letter-spacing: 0.3px;
     text-transform: uppercase;
@@ -5608,7 +5761,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     align-items: center;
     gap: 6px;
     font-family: "Inter", sans-serif;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: #5ed0fa;
     margin-top: 0;
@@ -5649,10 +5802,17 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 
     .ttw-projects {
         grid-template-columns: 1fr;
+        grid-template-rows: auto;
     }
 
     .ttw-project-large {
         grid-row: auto;
+    }
+
+    .ttw-project,
+    .ttw-project-small {
+        aspect-ratio: 16 / 10;
+        height: auto;
     }
 
     .ttw-process {
@@ -5969,8 +6129,6 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     }
 
     .ttw-quote-img-box {
-        max-height: 190px;
-        aspect-ratio: 16 / 10;
         border-radius: 12px;
         margin-bottom: 16px;
     }
@@ -6419,11 +6577,13 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 .ttw-about-hero {
     position: relative;
     width: 100%;
-    aspect-ratio: 16/9;
+    aspect-ratio: 16 / 9;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding: 100px 20px 60px;
+    box-sizing: border-box;
 }
 
 .ttw-about-hero-bg {
@@ -6500,7 +6660,6 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     grid-template-columns: 1fr 1fr;
     gap: 64px;
     align-items: center;
-    max-width: 1120px;
     margin: 0 auto;
 }
 
@@ -6539,7 +6698,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 .ttw-about-intro-desc p {
     font-family: "Inter", sans-serif;
     font-weight: 400;
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.6;
     color: #3E4850;
     margin: 0 0 16px 0;
@@ -6621,7 +6780,6 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
-    max-width: 1120px;
     margin: 0 auto;
 }
 
@@ -6667,7 +6825,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 .ttw-about-factory-card-desc {
     font-family: "Inter", sans-serif;
     font-weight: 400;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.6;
     color: #3E4850;
     margin: 0;
@@ -6742,6 +6900,301 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     box-shadow: 0 4px 14px rgba(0, 101, 145, 0.3);
 }
 
+/* Badge */
+.ttw-about-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(0, 101, 145, 0.08);
+    color: var(--ttw-primary);
+    border-radius: 40px;
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    width: fit-content;
+}
+
+/* Materials Section */
+.ttw-about-materials-section {
+    padding: 20px 0 40px;
+    width: 100%;
+}
+
+.ttw-about-materials-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.ttw-about-materials-title {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    color: var(--ttw-primary);
+    margin: 0 0 16px 0;
+}
+
+.ttw-about-materials-subtitle {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #3E4850;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.ttw-about-materials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin: 0 auto;
+}
+
+.ttw-about-material-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 32px 28px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ttw-about-material-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.ttw-about-mat-title {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--ttw-primary);
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #E5E7EB;
+}
+
+.ttw-about-mat-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ttw-about-mat-list li {
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #4B5563;
+    position: relative;
+    padding-left: 20px;
+}
+
+.ttw-about-mat-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--ttw-primary);
+    font-weight: bold;
+}
+
+.ttw-about-mat-list strong {
+    color: #1A1C1C;
+}
+
+/* Process Section */
+.ttw-about-process-section {
+    background: #F8FAFC;
+    padding: 80px 0;
+    width: 100%;
+}
+
+.ttw-about-process-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.ttw-about-process-title {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    color: var(--ttw-primary);
+    margin: 0 0 16px 0;
+}
+
+.ttw-about-process-subtitle {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #3E4850;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.ttw-about-process-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin: 0 auto;
+}
+
+.ttw-about-process-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 32px 24px;
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ttw-about-process-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.ttw-about-process-step {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    color: rgba(0, 101, 145, 0.2);
+    line-height: 1;
+    margin-bottom: 12px;
+}
+
+.ttw-about-process-name {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.4;
+    color: #1A1C1C;
+    margin: 0 0 10px 0;
+}
+
+.ttw-about-process-text {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #4B5563;
+    margin: 0 0 12px 0;
+}
+
+.ttw-about-process-list {
+    list-style: none;
+    margin: 0;
+    padding: 12px 0 0 0;
+    border-top: 1px dashed #E2E8F0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ttw-about-process-list li {
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #374151;
+    position: relative;
+    padding-left: 16px;
+}
+
+.ttw-about-process-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--ttw-primary);
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Core Values Section */
+.ttw-about-values-section {
+    padding: 20px 0 40px;
+    width: 100%;
+}
+
+.ttw-about-values-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.ttw-about-values-title {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    color: var(--ttw-primary);
+    margin: 0;
+}
+
+.ttw-about-values-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin: 0 auto;
+}
+
+.ttw-about-value-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 32px 20px;
+    text-align: center;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ttw-about-value-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+    border-color: var(--ttw-primary);
+}
+
+.ttw-about-value-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(0, 101, 145, 0.08);
+    color: var(--ttw-primary);
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+.ttw-about-value-name {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.4;
+    color: #1A1C1C;
+    margin: 0 0 12px 0;
+}
+
+.ttw-about-value-desc {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #4B5563;
+    margin: 0;
+}
+
 /* Responsive Styles for About Page */
 @media (max-width: 1024px) {
     .ttw-about-hero-title {
@@ -6753,89 +7206,135 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
         padding: 48px 0 64px 0;
     }
 
-    .ttw-about-factory-section {
+    .ttw-about-factory-section,
+    .ttw-about-process-section {
         padding: 64px 0;
     }
 
-    .ttw-about-factory-grid {
+    .ttw-about-factory-grid,
+    .ttw-about-materials-grid,
+    .ttw-about-process-grid {
+        gap: 20px;
+    }
+
+    .ttw-about-values-grid {
+        grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
 }
 
 @media (max-width: 768px) {
     .ttw-about-hero {
-        min-height: 380px;
+        min-height: 320px;
         height: auto;
-        padding: 80px 0 48px;
+        padding: 80px 16px 36px !important;
+        aspect-ratio: auto;
+        box-sizing: border-box;
+    }
+
+    .ttw-about-hero .container {
+        padding: 0 12px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .ttw-about-hero-card {
-        padding: 32px 20px;
+        padding: 24px 16px;
+        border-radius: 6px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .ttw-about-hero-title {
-        font-size: 28px;
+        font-size: 24px;
+        margin-bottom: 8px;
     }
 
     .ttw-about-hero-subtitle {
-        font-size: 15px;
+        font-size: 14px;
+        line-height: 1.5;
     }
 
     .ttw-about-main {
-        gap: 48px;
-        padding: 36px 0 48px 0;
+        gap: 40px;
+        padding: 24px 0 40px 0;
     }
 
     .ttw-about-intro-grid {
         grid-template-columns: 1fr;
-        gap: 32px;
+        gap: 24px;
     }
 
     .ttw-about-intro-title {
-        font-size: 24px;
+        font-size: 22px;
     }
 
-    .ttw-about-factory-section {
-        padding: 48px 0;
+    .ttw-about-factory-section,
+    .ttw-about-process-section {
+        padding: 40px 0;
     }
 
-    .ttw-about-factory-header {
-        margin-bottom: 32px;
+    .ttw-about-factory-header,
+    .ttw-about-materials-header,
+    .ttw-about-process-header,
+    .ttw-about-values-header {
+        margin-bottom: 24px;
     }
 
-    .ttw-about-factory-title {
-        font-size: 24px;
+    .ttw-about-factory-title,
+    .ttw-about-materials-title,
+    .ttw-about-process-title,
+    .ttw-about-values-title {
+        font-size: 22px;
     }
 
-    .ttw-about-factory-grid {
+    .ttw-about-factory-grid,
+    .ttw-about-materials-grid,
+    .ttw-about-process-grid,
+    .ttw-about-values-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
     }
 
     .ttw-about-cta-card {
-        padding: 32px 20px;
+        padding: 28px 16px;
     }
 
     .ttw-about-cta-title {
-        font-size: 22px;
+        font-size: 20px;
     }
 }
 
 @media (max-width: 480px) {
-    .ttw-about-hero-title {
-        font-size: 24px;
+    .ttw-about-hero {
+        min-height: 280px;
+        padding: 76px 12px 28px !important;
     }
 
-    .ttw-about-intro-stats {
-        flex-direction: column;
-        gap: 16px;
+    .ttw-about-hero-card {
+        padding: 18px 12px;
+    }
+
+    .ttw-about-hero-title {
+        font-size: 19px;
+    }
+
+    .ttw-about-hero-subtitle {
+        font-size: 13px;
     }
 
     .ttw-about-intro-stat+.ttw-about-intro-stat {
         border-left: none;
         border-top: 1px solid #BEC8D2;
         padding-left: 0;
-        padding-top: 16px;
+        padding-top: 12px;
+    }
+}
+
+/* Ẩn slogan hover che toàn màn hình trên mobile chỉ áp dụng desktop */
+@media (max-width: 1024px) {
+    .ttw-logo-hover-slogan {
+        display: none !important;
     }
 }
 
@@ -7084,7 +7583,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-quote-hero-desc {
     font-family: "Inter", sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.65;
     color: #585F6A;
     margin: 0;
@@ -7481,7 +7980,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-quote-section-subtitle {
     font-family: "Inter", sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.6;
     color: #585F6A;
     margin: 8px 0 0;
@@ -7556,7 +8055,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-component-card p {
     font-family: "Inter", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.6;
     color: #585F6A;
     margin: 0;
@@ -7627,7 +8126,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     flex-direction: column;
     gap: 6px;
     font-family: "Inter", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.5;
 }
 
@@ -7693,7 +8192,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-quote-table-subtitle {
     font-family: "Inter", sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     color: #585F6A;
     margin: 0;
 }
@@ -7803,10 +8302,14 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-sample-head h4 {
     font-family: "Montserrat", sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: #1A1C1C;
     margin: 0;
+}
+
+.ttw-sample-head p {
+    font-size: 16px;
 }
 
 .ttw-sample-size {
@@ -7827,7 +8330,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     justify-content: space-between;
     align-items: center;
     font-family: "Inter", sans-serif;
-    font-size: 13px;
+    font-size: 15px;
     color: #475569;
 }
 
@@ -7864,7 +8367,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-quote-notes-card h4 {
     font-family: "Montserrat", sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: #1E293B;
     margin: 0 0 12px;
@@ -7874,7 +8377,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     margin: 0;
     padding-left: 20px;
     font-family: "Inter", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.6;
     color: #475569;
 }
@@ -7942,7 +8445,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-contact-band-desc {
     font-family: "Inter", sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.6;
     color: #585F6A;
     margin: 0 0 12px;
@@ -7991,6 +8494,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 .ttw-location-box p {
     color: #64748B;
     margin: 0 0 4px;
+    font-size: 16px;
 }
 
 .ttw-location-box p span {
@@ -8024,6 +8528,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     align-items: center;
     gap: 14px;
     width: 100%;
+    font-size: 18px;
 }
 
 .ttw-action-call-box span {
@@ -8318,7 +8823,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-culture-sec-desc {
     font-family: "Inter", sans-serif;
-    font-size: 15.5px;
+    font-size: 17px;
     line-height: 1.7;
     color: #585F6A;
     margin: 16px 0 0 0;
@@ -8380,7 +8885,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-mission-content p {
     font-family: "Inter", sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.7;
     color: #0369A1;
     margin: 0;
@@ -8685,7 +9190,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 }
 
 .ttw-target-content p {
-    font-size: 15.5px;
+    font-size: 18px;
     line-height: 1.8;
     color: #1E293B;
     margin: 0 0 10px 0;
@@ -8792,7 +9297,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-feature-subcard p {
     font-family: "Inter", sans-serif;
-    font-size: 14.5px;
+    font-size: 16px;
     line-height: 1.65;
     color: #334155;
     margin: 0;
@@ -9015,7 +9520,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-cta-hotline-label {
     font-family: "Inter", sans-serif;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -9058,7 +9563,7 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 
 .ttw-cta-subphone {
     font-family: "Inter", sans-serif;
-    font-size: 13px;
+    font-size: 15px;
     color: rgba(255, 255, 255, 0.8);
 }
 
@@ -9915,20 +10420,21 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 }
 
 /* Triệt tiêu ảnh hưởng của thẻ <p> tự động sinh ra bởi trình soạn thảo WYSIWYG / UX Builder */
-.ttw-warranty-grid-2col > p:empty,
+.ttw-warranty-grid-2col>p:empty,
 .ttw-warranty-page p:empty {
     display: none !important;
     margin: 0 !important;
     padding: 0 !important;
 }
 
-.ttw-warranty-grid-2col > p {
+.ttw-warranty-grid-2col>p {
     margin: 0 !important;
     padding: 0 !important;
     display: contents !important;
 }
 
 @media (max-width: 1024px) {
+
     .ttw-warranty-grid-2col,
     .uxb-content .ttw-warranty-grid-2col,
     .ux-builder-active .ttw-warranty-grid-2col,
@@ -9937,9 +10443,9 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
         grid-template-columns: 1fr !important;
     }
 
-    .ttw-warranty-grid-2col > .ttw-wcard,
-    .ux-builder-active .ttw-warranty-grid-2col > .ttw-wcard,
-    .ttw-warranty-page .ttw-warranty-grid-2col > .ttw-wcard {
+    .ttw-warranty-grid-2col>.ttw-wcard,
+    .ux-builder-active .ttw-warranty-grid-2col>.ttw-wcard,
+    .ttw-warranty-page .ttw-warranty-grid-2col>.ttw-wcard {
         flex: 1 1 100% !important;
     }
 }
