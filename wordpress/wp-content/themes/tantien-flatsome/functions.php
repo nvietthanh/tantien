@@ -85,6 +85,13 @@ if ( ! function_exists( 'ttw_get_pagination_url' ) ) {
  * Filter ép sử dụng template custom cho Single Product và Category Tuyển Dụng
  */
 add_filter( 'template_include', function( $template ) {
+	if ( is_page( array( 'lien-he', 'lien-he-tu-van', 'tu-van' ) ) || ( isset( $_SERVER['REQUEST_URI'] ) && ( false !== strpos( $_SERVER['REQUEST_URI'], '/lien-he' ) || false !== strpos( $_SERVER['REQUEST_URI'], '/tu-van' ) ) ) ) {
+		$custom_contact = get_stylesheet_directory() . '/page-lien-he.php';
+		if ( file_exists( $custom_contact ) ) {
+			return $custom_contact;
+		}
+	}
+
 	if ( is_page( 'tuyen-dung' ) || is_category( 'tuyen-dung' ) || ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $_SERVER['REQUEST_URI'], '/tuyen-dung' ) ) ) {
 
 		$custom_careers = get_stylesheet_directory() . '/page-tuyen-dung.php';
@@ -121,6 +128,7 @@ add_filter( 'template_include', function( $template ) {
  * Nạp module Cài đặt Footer & Hotline
  */
 require_once get_stylesheet_directory() . '/inc/theme-settings.php';
+require_once get_stylesheet_directory() . '/inc/consultation.php';
 
 /**
  * Company helpers & Theme Functions
@@ -144,11 +152,7 @@ function ttw_zalo_link() {
 }
 
 function ttw_consult_url() {
-	$page = get_page_by_path( 'bao-gia' );
-	if ( $page ) {
-		return get_permalink( $page );
-	}
-	return home_url( '/bao-gia/' );
+	return home_url( '/lien-he/' );
 }
 
 function ttw_shop_url() {
@@ -579,7 +583,7 @@ add_action( 'ux_builder_setup', function() {
 [ttw_hero_title text="Giải pháp nhôm kính cho kiến trúc hiện đại"]
 [ttw_hero_desc text="Tân Tiến Window cung cấp các giải pháp cửa nhôm kính, kính cường lực và vách kính mặt dựng với định hướng hiện đại, bền vững và thẩm mỹ cao."]
 [ttw_hero_button text="Khám phá sản phẩm" link="/san-pham-2/" type="primary"]
-[ttw_hero_button text="Nhận tư vấn" link="/bao-gia/" type="light"]
+[ttw_hero_button text="Nhận tư vấn" link="/lien-he/" type="light"]
 [/ttw_hero]',
 			),
 		),

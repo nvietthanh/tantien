@@ -10449,3 +10449,572 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
         flex: 1 1 100% !important;
     }
 }
+
+/* ==========================================================================
+   23. Consultation & Contact Page (/lien-he/ & /page-lien-he.php)
+   ========================================================================== */
+.ttw-contact-page {
+    background-color: #f8fafc;
+    padding: 120px 0 100px;
+    min-height: 80vh;
+}
+
+.ttw-contact-page .ttw-contact-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+
+.ttw-contact-page .ttw-contact-hero {
+    text-align: center;
+    max-width: 860px;
+    margin: 0 auto 56px;
+}
+
+.ttw-contact-page .ttw-contact-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(0, 101, 145, 0.08);
+    color: var(--ttw-primary, #006591);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    border-radius: 30px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.ttw-contact-page .ttw-contact-title {
+    font-family: "Montserrat", sans-serif;
+    font-size: clamp(36px, 5.5vw, 54px);
+    font-weight: 800;
+    color: var(--ttw-primary, #006591);
+    line-height: 1.25;
+    margin: 0 0 18px;
+    text-transform: uppercase;
+}
+
+.ttw-contact-page .ttw-contact-subtitle {
+    font-size: 19px;
+    color: #475569;
+    line-height: 1.65;
+    margin: 0;
+}
+
+.ttw-contact-page .ttw-contact-layout {
+    display: grid;
+    grid-template-columns: 440px 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+/* Contact Cards Left Column */
+.ttw-contact-page .ttw-contact-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.ttw-contact-page .ttw-contact-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 36px 32px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2f6;
+}
+
+.ttw-contact-page .ttw-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 22px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.ttw-contact-page .ttw-card-heading svg {
+    color: var(--ttw-primary, #006591);
+    flex-shrink: 0;
+}
+
+.ttw-contact-page .ttw-hotline-highlight {
+    background: linear-gradient(135deg, #f0f7fa 0%, #e5f1f7 100%);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 22px;
+    border: 1px solid #d9e8f0;
+    border-left: 5px solid var(--ttw-primary, #006591);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 101, 145, 0.04);
+}
+
+.ttw-contact-page .ttw-hotline-highlight span {
+    display: block;
+    font-size: 14px;
+    color: #556987;
+    margin-bottom: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ttw-contact-page .ttw-phone-big {
+    font-family: "Montserrat", sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--ttw-primary, #006591);
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    display: inline-block;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.ttw-contact-page .ttw-phone-big:hover {
+    color: #004d6f;
+    transform: translateX(2px);
+}
+
+.ttw-contact-page .ttw-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.ttw-contact-page .ttw-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 14px;
+    border-radius: 10px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    white-space: nowrap;
+    box-sizing: border-box;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.ttw-contact-page .ttw-btn svg {
+    flex-shrink: 0;
+}
+
+.ttw-contact-page .ttw-btn-call {
+    background: var(--ttw-primary, #006591);
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0, 101, 145, 0.25);
+    border: 1px solid rgba(0, 101, 145, 0.1);
+}
+
+.ttw-contact-page .ttw-btn-call:hover {
+    background: #004d6f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 101, 145, 0.35);
+    color: #ffffff !important;
+}
+
+.ttw-contact-page .ttw-btn-zalo {
+    background: #0068ff;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0, 104, 255, 0.25);
+    border: 1px solid rgba(0, 104, 255, 0.1);
+}
+
+.ttw-contact-page .ttw-btn-zalo:hover {
+    background: #0052cc;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 104, 255, 0.35);
+    color: #ffffff !important;
+}
+
+.ttw-contact-page .ttw-location-block {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.ttw-contact-page .ttw-location-block:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.ttw-contact-page .ttw-loc-badge {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ttw-contact-page .ttw-location-block p {
+    font-size: 15px;
+    color: #334155;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Form Right Column */
+.ttw-contact-page .ttw-form-wrapper {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 44px 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef2f6;
+}
+
+.ttw-contact-page .ttw-form-header {
+    margin-bottom: 32px;
+}
+
+.ttw-contact-page .ttw-form-header h2 {
+    font-family: "Montserrat", sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.ttw-contact-page .ttw-form-header p {
+    font-size: 15.5px;
+    color: #64748b;
+    margin: 0;
+}
+
+.ttw-contact-page .ttw-form-group {
+    margin-bottom: 24px;
+}
+
+.ttw-contact-page .ttw-form-group label {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.ttw-contact-page .ttw-form-group label .required {
+    color: #dc2626;
+}
+
+.ttw-contact-page .ttw-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.ttw-contact-page .ttw-input-wrap {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.ttw-contact-page .ttw-input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    z-index: 2;
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.ttw-contact-page .ttw-input-wrap input[type="text"],
+.ttw-contact-page .ttw-input-wrap input[type="tel"],
+.ttw-contact-page .ttw-input-wrap input,
+.ttw-contact-page .ttw-input-wrap textarea {
+    display: block;
+    width: 100%;
+    height: 52px;
+    margin-bottom: 0 !important;
+    padding: 12px 18px 12px 48px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #1e293b;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.ttw-contact-page .ttw-textarea-wrap textarea {
+    height: auto !important;
+    padding: 16px 18px !important;
+    resize: vertical;
+    min-height: 130px;
+    font-size: 15px;
+}
+
+.ttw-contact-page .ttw-input-wrap input:focus,
+.ttw-contact-page .ttw-input-wrap textarea:focus {
+    outline: none !important;
+    border-color: var(--ttw-primary, #006591) !important;
+    box-shadow: 0 0 0 3px rgba(0, 101, 145, 0.15) !important;
+}
+
+.ttw-contact-page .ttw-form-feedback {
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 500;
+    margin-bottom: 22px;
+    line-height: 1.5;
+}
+
+.ttw-contact-page .ttw-alert-success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.ttw-contact-page .ttw-alert-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.ttw-contact-page .ttw-submit-btn {
+    width: 100%;
+    padding: 18px 26px;
+    background: var(--ttw-primary, #006591);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 101, 145, 0.25);
+}
+
+.ttw-contact-page .ttw-submit-btn:hover {
+    background: #004d6f;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 101, 145, 0.35);
+}
+
+.ttw-contact-page .ttw-submit-btn:disabled {
+
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ttw-contact-page .btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ttw-contact-page .spinner {
+    animation: rotate 1.5s linear infinite;
+}
+
+.ttw-contact-page .spinner .path {
+    stroke: #ffffff;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .ttw-contact-page .ttw-contact-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ttw-contact-page .ttw-contact-info-col {
+        order: 2;
+    }
+
+    .ttw-contact-page .ttw-contact-form-col {
+        order: 1;
+    }
+}
+
+@media (max-width: 600px) {
+    .ttw-contact-page .ttw-form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .ttw-contact-page .ttw-form-wrapper {
+        padding: 24px 20px;
+    }
+
+    .ttw-contact-page .ttw-contact-card {
+        padding: 24px 20px;
+    }
+}
+
+/* Modal Popup Thông Báo Thành Công */
+.ttw-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: ttwModalFadeIn 0.3s ease;
+}
+
+.ttw-modal-dialog {
+    background: #ffffff;
+    border-radius: 20px;
+    max-width: 480px;
+    width: 100%;
+    padding: 36px 32px 30px;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: ttwModalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ttw-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.ttw-modal-close:hover {
+    color: #1e293b;
+    transform: scale(1.1);
+}
+
+.ttw-modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #def7ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.ttw-modal-title {
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #0e9f6e;
+    margin: 0 0 12px;
+    letter-spacing: 0.02em;
+}
+
+.ttw-modal-desc {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: #475569;
+    margin: 0 0 24px;
+}
+
+.ttw-modal-desc strong {
+    color: #1e293b;
+}
+
+.ttw-modal-btn {
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--ttw-primary, #006591);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(0, 101, 145, 0.25);
+}
+
+.ttw-modal-btn:hover {
+    background: #004d6f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 101, 145, 0.35);
+}
+
+body.ttw-modal-open {
+    overflow: hidden !important;
+}
+
+@keyframes ttwModalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes ttwModalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

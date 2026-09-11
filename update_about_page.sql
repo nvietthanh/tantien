@@ -258,7 +258,7 @@ SET `post_content` = '<div class="ttw-about-page">
 <div class="ttw-about-cta-card ttw-animate ttw-fade-up">
 <h2 class="ttw-about-cta-title">ĐỒNG HÀNH CÙNG CÔNG TRÌNH CỦA BẠN</h2>
 <p class="ttw-about-cta-desc">Liên hệ với đội ngũ kỹ sư của Tân Tiến Window để nhận tư vấn chuyên sâu, khảo sát hiện trạng và nhận bản vẽ kỹ thuật chi tiết cùng báo giá tốt nhất cho dự án của bạn.</p>
-<p><a class="ttw-about-cta-btn" href="/bao-gia/">NHẬN BÁO GIÁ &amp; TƯ VẤN NGAY</a></p>
+<p><a class="ttw-about-cta-btn" href="/lien-he/">NHẬN BÁO GIÁ &amp; TƯ VẤN NGAY</a></p>
 </div>
 </div>
 </section>

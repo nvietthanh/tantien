@@ -55,6 +55,7 @@ $cta_fb = ! empty( $ttw_fs['cta_facebook'] ) ? $ttw_fs['cta_facebook'] : 'https:
 						<li><a href="<?php echo esc_url( ttw_shop_url() ); ?>">Sản phẩm &amp; Hệ cửa</a></li>
 						<li><a href="<?php echo esc_url( ttw_projects_url() ); ?>">Công trình tiêu biểu</a></li>
 						<li><a href="<?php echo esc_url( home_url( '/quy-dinh-bao-hanh/' ) ); ?>">Quy định bảo hành</a></li>
+						<li><a href="<?php echo esc_url( home_url( '/lien-he/' ) ); ?>">Liên hệ tư vấn</a></li>
 					</ul>
 				</div>
 
