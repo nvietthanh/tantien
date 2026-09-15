@@ -536,6 +536,27 @@ function ttw_get_posts_options_array() {
 	return $options;
 }
 
+// Hàm nạp danh sách Bài Viết thuộc danh mục "Những công trình tiêu biểu nhất" cho UX Builder
+function ttw_get_featured_projects_options_array() {
+	$options = array( '' => __( '-- Chọn bài viết tiêu biểu nhất (Tối đa 3 bài) --' ) );
+	$posts = get_posts( array(
+		'post_type'      => 'post',
+		'post_status'    => 'publish',
+		'posts_per_page' => 100,
+		'category_name'  => 'nhung-cong-trinh-tieu-bieu-nhat',
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	) );
+	if ( ! empty( $posts ) ) {
+		foreach ( $posts as $p ) {
+			$options[ $p->ID ] = $p->post_title . ' (ID: ' . $p->ID . ')';
+		}
+	} else {
+		$options = array( '' => __( '-- Chưa có bài viết trong danh mục "Những công trình tiêu biểu nhất" --' ) );
+	}
+	return $options;
+}
+
 
 // 3. Đăng ký các Shortcode & UX Builder Elements cho Tân Tiến Window với đầy đủ Options chỉnh sửa
 add_action( 'ux_builder_setup', function() {
@@ -1016,15 +1037,15 @@ add_action( 'ux_builder_setup', function() {
 			),
 			'ids' => array(
 				'type'        => 'select',
-				'heading'     => __( 'Chọn bài viết cụ thể (Tối đa 3 bài)' ),
-				'description' => __( 'Nhấp chọn tối đa 3 bài viết mong muốn hiển thị theo đúng thứ tự nhấp chọn.' ),
+				'heading'     => __( 'Chọn bài viết tiêu biểu (Tối đa 3 bài)' ),
+				'description' => __( 'Chỉ chọn các bài viết thuộc danh mục "Những công trình tiêu biểu nhất" để hiển thị tại đây.' ),
 				'config'      => array(
 					'multiple'    => true,
 					'maxSelect'   => 3,
 					'max_items'   => 3,
-					'placeholder' => __( 'Chọn tối đa 3 bài viết...' ),
+					'placeholder' => __( 'Chọn tối đa 3 bài viết tiêu biểu nhất...' ),
 				),
-				'options'     => ttw_get_posts_options_array(),
+				'options'     => ttw_get_featured_projects_options_array(),
 				'default'     => '',
 			),
 			'orderby' => array(
@@ -2290,31 +2311,72 @@ function ttw_register_shortcodes() {
 			'order'   => 'DESC',
 		), $atts );
 
-		$query_args = array(
-			'post_type'   => 'post',
-			'post_status' => 'publish',
-		);
+		$final_post_ids = array();
 
 		// Nếu người dùng chọn danh sách ID bài viết cụ thể
 		if ( ! empty( $a['ids'] ) ) {
 			$raw_ids = is_array( $a['ids'] ) ? $a['ids'] : explode( ',', $a['ids'] );
 			$clean_ids = array_filter( array_map( 'intval', $raw_ids ), function( $id ) { return $id > 0; } );
-			
 			if ( ! empty( $clean_ids ) ) {
-				// Giới hạn chỉ chọn & hiển thị tối đa đúng 3 bài
-				$clean_ids = array_slice( array_values( $clean_ids ), 0, 3 );
-
-				$query_args['post__in']       = $clean_ids;
-				$query_args['posts_per_page'] = count( $clean_ids );
-				$query_args['orderby']        = 'post__in'; // Hiển thị chuẩn 100% theo đúng thứ tự bạn đã nhấp chọn từng bài
+				$final_post_ids = array_slice( array_values( $clean_ids ), 0, 3 );
 			}
-		} else {
-			// Người dùng không chọn ID -> Tự động lấy theo số lượng count và điều kiện sắp xếp
-			$query_args['cat']            = 72; // Category CÔNG TRÌNH TIÊU BIỂU
-			$query_args['posts_per_page'] = max( 1, intval( $a['count'] ) );
-			$query_args['orderby']        = sanitize_key( $a['orderby'] );
-			$query_args['order']          = strtoupper( sanitize_key( $a['order'] ) );
 		}
+
+		// Nếu không chọn bài viết cụ thể: Lấy ngẫu nhiên ưu tiên "nhung-cong-trinh-tieu-bieu-nhat", nếu không đủ hoặc chưa có thì lấy từ "nhung-cong-trinh-tieu-bieu"
+		if ( empty( $final_post_ids ) ) {
+			$limit = max( 1, min( 3, intval( $a['count'] ) ) );
+
+			// Bước 1: Lấy ngẫu nhiên từ chuyên mục "nhung-cong-trinh-tieu-bieu-nhat"
+			$featured_cat = get_term_by( 'slug', 'nhung-cong-trinh-tieu-bieu-nhat', 'category' );
+			$featured_id  = ( $featured_cat && ! is_wp_error( $featured_cat ) ) ? $featured_cat->term_id : 402;
+
+			$p1_posts = get_posts( array(
+				'post_type'      => 'post',
+				'post_status'    => 'publish',
+				'cat'            => $featured_id,
+				'posts_per_page' => $limit,
+				'orderby'        => 'rand',
+				'fields'         => 'ids',
+			) );
+
+			if ( ! empty( $p1_posts ) ) {
+				$final_post_ids = array_merge( $final_post_ids, $p1_posts );
+			}
+
+			// Bước 2: Nếu chưa đủ số lượng, lấy ngẫu nhiên thêm từ "nhung-cong-trinh-tieu-bieu" / "cong-trinh-tieu-bieu"
+			$remaining = $limit - count( $final_post_ids );
+			if ( $remaining > 0 ) {
+				$general_cat = get_term_by( 'slug', 'nhung-cong-trinh-tieu-bieu', 'category' );
+				if ( ! $general_cat || is_wp_error( $general_cat ) ) {
+					$general_cat = get_term_by( 'slug', 'cong-trinh-tieu-bieu', 'category' );
+				}
+				$general_id = ( $general_cat && ! is_wp_error( $general_cat ) ) ? $general_cat->term_id : 72;
+
+				$p2_posts = get_posts( array(
+					'post_type'      => 'post',
+					'post_status'    => 'publish',
+					'cat'            => $general_id,
+					'posts_per_page' => $remaining,
+					'post__not_in'   => $final_post_ids,
+					'orderby'        => 'rand',
+					'fields'         => 'ids',
+				) );
+
+				if ( ! empty( $p2_posts ) ) {
+					$final_post_ids = array_merge( $final_post_ids, $p2_posts );
+				}
+			}
+		}
+
+		if ( empty( $final_post_ids ) ) return '';
+
+		$query_args = array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'post__in'       => $final_post_ids,
+			'posts_per_page' => count( $final_post_ids ),
+			'orderby'        => 'post__in',
+		);
 
 
 
@@ -2612,21 +2674,143 @@ function ttw_register_shortcodes() {
 			'post_status'    => 'publish',
 			'posts_per_page' => (int) $a['posts_per_page'],
 			'paged'          => $ttw_paged,
-			'cat'            => 72, // Category CÔNG TRÌNH TIÊU BIỂU
 			'orderby'        => sanitize_key( $a['orderby'] ),
 			'order'          => strtoupper( sanitize_key( $a['order'] ) ),
 		);
 
+		// Category CÔNG TRÌNH TIÊU BIỂU ("nhung-cong-trinh-tieu-bieu" / "cong-trinh-tieu-bieu") VÀ loại trừ triệt để category "Những công trình tiêu biểu nhất" (nhung-cong-trinh-tieu-bieu-nhat)
+		$featured_cat = get_term_by( 'slug', 'nhung-cong-trinh-tieu-bieu-nhat', 'category' );
+		$featured_id  = ( $featured_cat && ! is_wp_error( $featured_cat ) ) ? $featured_cat->term_id : 0;
 
-		if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
-			$query_args['tag'] = $ttw_curr_cat;
+		$general_cat = get_term_by( 'slug', 'nhung-cong-trinh-tieu-bieu', 'category' );
+		if ( ! $general_cat || is_wp_error( $general_cat ) ) {
+			$general_cat = get_term_by( 'slug', 'cong-trinh-tieu-bieu', 'category' );
 		}
+		$general_id = ( $general_cat && ! is_wp_error( $general_cat ) ) ? $general_cat->term_id : 72;
+
+		$tax_query = array(
+			'relation' => 'AND',
+			array(
+				'taxonomy' => 'category',
+				'field'    => 'term_id',
+				'terms'    => $general_id,
+				'operator' => 'IN',
+			),
+		);
+
+		if ( $featured_id > 0 ) {
+			$tax_query[] = array(
+				'taxonomy' => 'category',
+				'field'    => 'term_id',
+				'terms'    => array( $featured_id ),
+				'operator' => 'NOT IN',
+			);
+		}
+
+		// 1. Quét danh mục con (Sub-categories) thuộc chuyên mục cha "CÔNG TRÌNH TIÊU BIỂU"
+		$child_categories = get_terms( array(
+			'taxonomy'   => 'category',
+			'parent'     => $general_id,
+			'hide_empty' => false,
+		) );
+
+		$ttw_categories = array(
+			array( 'slug' => 'all', 'name' => 'Tất cả' ),
+		);
+
+		if ( ! empty( $child_categories ) && ! is_wp_error( $child_categories ) ) {
+			// Nếu trong WP Admin có tạo các chuyên mục con, ưu tiên lấy 100% tự động
+			foreach ( $child_categories as $child_cat ) {
+				// Bỏ qua category featured nếu trùng
+				if ( $featured_id > 0 && (int) $child_cat->term_id === (int) $featured_id ) {
+					continue;
+				}
+				$ttw_categories[] = array(
+					'slug' => $child_cat->slug,
+					'name' => $child_cat->name,
+				);
+			}
+
+			// Khi người dùng bấm lọc category con
+			if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+				$tax_query[] = array(
+					'taxonomy' => 'category',
+					'field'    => 'slug',
+					'terms'    => array( $ttw_curr_cat ),
+				);
+			}
+		} else {
+			// Fallback: nếu chưa tạo category con trong Admin thì dùng post_tag
+			$ttw_project_allowed_slugs = array(
+				'biet-thu'          => 'Biệt thự',
+				'van-phong'         => 'Văn phòng',
+				'can-ho-cao-cap'    => 'Căn hộ cao cấp',
+				'to-hop-thuong-mai' => 'Tổ hợp thương mại',
+			);
+
+			$ttw_project_tags = get_terms( array(
+				'taxonomy'   => 'post_tag',
+				'slug'       => array_keys( $ttw_project_allowed_slugs ),
+				'hide_empty' => false,
+			) );
+
+			if ( ! empty( $ttw_project_tags ) && ! is_wp_error( $ttw_project_tags ) ) {
+				$found_terms_map = array();
+				foreach ( $ttw_project_tags as $t ) {
+					$found_terms_map[ $t->slug ] = $t->name;
+				}
+				foreach ( $ttw_project_allowed_slugs as $slug => $default_name ) {
+					$ttw_categories[] = array(
+						'slug' => $slug,
+						'name' => isset( $found_terms_map[ $slug ] ) ? $found_terms_map[ $slug ] : $default_name,
+					);
+				}
+			} else {
+				foreach ( $ttw_project_allowed_slugs as $slug => $name ) {
+					$ttw_categories[] = array(
+						'slug' => $slug,
+						'name' => $name,
+					);
+				}
+			}
+
+			if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+				$tax_query[] = array(
+					'taxonomy' => 'post_tag',
+					'field'    => 'slug',
+					'terms'    => array( $ttw_curr_cat ),
+				);
+			}
+		}
+
+		$query_args['tax_query'] = $tax_query;
 
 		$projects_query = new WP_Query( $query_args );
 		ob_start();
 
 		?>
 		<div class="ttw-projects-page" style="padding-top: 0;"><div class="ttw-projects-container" style="padding-top: 0; padding-bottom: 80px;">
+			<nav class="ttw-category-nav ttw-animate ttw-fade-up" aria-label="Danh mục công trình" style="margin-bottom: 40px;">
+				<ul class="ttw-category-list" id="ttw-project-category-filter">
+					<?php
+					$base_url = strtok( get_permalink(), '?' );
+					$base_url = preg_replace( '#/page/[0-9]+/?$#', '', untrailingslashit( $base_url ) );
+					$base_url = trailingslashit( $base_url );
+					foreach ( $ttw_categories as $ttw_cat ) :
+						$cat_slug   = $ttw_cat['slug'];
+						$is_cat_act = ( $ttw_curr_cat === $cat_slug );
+						$cat_url    = ( 'all' === $cat_slug ) ? $base_url : add_query_arg( 'cat', $cat_slug, $base_url );
+						?>
+						<li class="ttw-category-item">
+							<a href="<?php echo esc_url( $cat_url ); ?>"
+							   class="ttw-category-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
+								<?php echo esc_html( $ttw_cat['name'] ); ?>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</nav>
+
 			<section class="ttw-project-grid" aria-label="Danh sách công trình">
 				<?php if ( $projects_query->have_posts() ) : ?>
 					<?php while ( $projects_query->have_posts() ) : $projects_query->the_post(); ?>
@@ -2759,12 +2943,15 @@ function ttw_register_shortcodes() {
 		$ttw_paged    = ttw_get_current_paged();
 		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
 
+		$featured_cat = get_term_by( 'slug', 'nhung-cong-trinh-tieu-bieu-nhat', 'category' );
+		$featured_id  = ( $featured_cat && ! is_wp_error( $featured_cat ) ) ? $featured_cat->term_id : 402;
+
 		$query_args = array(
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
 			'posts_per_page' => (int) $a['posts_per_page'],
 			'paged'          => $ttw_paged,
-			'category__not_in' => array( 72 ), // Loại bỏ category công trình tiêu biểu
+			'category__not_in' => array( 72, $featured_id ), // Loại bỏ category công trình tiêu biểu & những công trình tiêu biểu nhất
 			'orderby'        => sanitize_key( $a['orderby'] ),
 			'order'          => strtoupper( sanitize_key( $a['order'] ) ),
 		);
@@ -2775,11 +2962,12 @@ function ttw_register_shortcodes() {
 
 		$news_query = new WP_Query( $query_args );
 
-		// Lấy danh sách danh mục (category) trực tiếp từ Database (loại bỏ category Công trình tiêu biểu ID 72 & Uncategorized 1)
+		// Lấy danh sách danh mục cấp cao nhất (parent = 0) trực tiếp từ Database (loại bỏ category Công trình tiêu biểu ID 72, Uncategorized 1 & Những công trình tiêu biểu nhất)
 		$ttw_db_terms = get_terms( array(
 			'taxonomy'   => 'category',
+			'parent'     => 0,
 			'hide_empty' => false,
-			'exclude'    => array( 72, 1 ), // Exclude Công trình tiêu biểu & Dịch vụ
+			'exclude'    => array( 72, 1, $featured_id ), // Exclude Công trình tiêu biểu, Dịch vụ & Những công trình tiêu biểu nhất
 			'orderby'    => 'name',
 			'order'      => 'ASC',
 		) );

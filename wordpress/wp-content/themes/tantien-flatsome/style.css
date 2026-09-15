@@ -1239,13 +1239,34 @@ body.admin-bar .ttw-products-hero {
 .ttw-category-nav {
     border-bottom: 1px solid #BEC8D2;
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ttw-primary, #006591) #F1F5F9;
+    padding-bottom: 2px;
 }
 
 .ttw-category-nav::-webkit-scrollbar {
-    display: none;
+    height: 5px;
+}
+
+.ttw-category-nav::-webkit-scrollbar-track {
+    background: #F1F5F9;
+    border-radius: 10px;
+    margin: 0 4px;
+}
+
+.ttw-category-nav::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, var(--ttw-primary, #006591), #0284c7);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.ttw-category-nav::-webkit-scrollbar-thumb:hover {
+    background: #0284c7;
 }
 
 .ttw-category-list {
@@ -1256,9 +1277,12 @@ body.admin-bar .ttw-products-hero {
     margin: 0;
     list-style: none;
     white-space: nowrap;
+    width: max-content;
+    min-width: 100%;
 }
 
 .ttw-category-item {
+    flex-shrink: 0;
     margin: 0;
     padding: 0;
 }
@@ -1721,7 +1745,7 @@ body.admin-bar .ttw-products-hero {
 
 @media (min-width: 1024px) {
     .ttw-projects-container {
-        padding: 40px clamp(24px, 4vw, 80px) 80px;
+        padding: 40px clamp(24px, 4vw, 80px) 20px;
     }
 }
 
