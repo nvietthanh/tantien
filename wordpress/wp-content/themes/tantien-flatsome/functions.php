@@ -100,6 +100,13 @@ add_filter( 'template_include', function( $template ) {
 		}
 	}
 
+	if ( is_page( 'bao-gia' ) || is_category( 'bao-gia' ) || is_tax( 'product_cat', 'bao-gia' ) || ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $_SERVER['REQUEST_URI'], '/bao-gia' ) && ! is_singular( array( 'post', 'product' ) ) ) ) {
+		$custom_quote = get_stylesheet_directory() . '/page-bao-gia.php';
+		if ( file_exists( $custom_quote ) ) {
+			return $custom_quote;
+		}
+	}
+
 	if ( is_singular( 'product' ) || ( function_exists( 'is_product' ) && is_product() ) ) {
 		$custom_single = get_stylesheet_directory() . '/woocommerce/single-product.php';
 		if ( file_exists( $custom_single ) ) {
@@ -1631,6 +1638,113 @@ add_action( 'ux_builder_setup', function() {
 			),
 		),
 	) );
+
+	// 22. Shortcode Quote Hero (Container)
+	add_ux_builder_shortcode( 'ttw_quote_hero', array(
+		'name'      => __( 'TTW - Quote Hero (Header Báo Giá)', 'tantien-window' ),
+		'type'      => 'container',
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 22,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'template'  => '[ttw_quote_hero]{{content}}[/ttw_quote_hero]',
+		'allow'     => array( 'ttw_quote_title', 'ttw_quote_subtitle', 'text', 'button' ),
+		'options'   => array(),
+	) );
+
+	// 23. Shortcode Quote Title
+	add_ux_builder_shortcode( 'ttw_quote_title', array(
+		'name'      => __( 'TTW - Tiêu Đề Báo Giá (H1)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 23,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Tiêu đề' ),
+				'default' => 'BÁO GIÁ',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
+				'default' => '#006591',
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ (vd: 48px)' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
+			),
+		),
+	) );
+
+	// 24. Shortcode Quote Subtitle
+	add_ux_builder_shortcode( 'ttw_quote_subtitle', array(
+		'name'      => __( 'TTW - Phụ Đề Báo Giá', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 24,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'text' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Nội dung phụ đề' ),
+				'default' => 'BẢNG BÁO GIÁ THI CÔNG CỬA NHÔM KÍNH & KÍNH KIẾN TRÚC MỚI NHẤT',
+			),
+			'color' => array(
+				'type'    => 'colorpicker',
+				'heading' => __( 'Màu chữ' ),
+				'default' => '#585F6A',
+			),
+			'font_size' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Kích thước chữ (vd: 16px)' ),
+				'default' => '',
+			),
+			'css' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'CSS tùy chỉnh bổ sung' ),
+				'default' => '',
+			),
+		),
+	) );
+
+	// 25. Shortcode Quote Archive (Danh sách Báo giá Bento Grid + Lọc Category)
+	add_ux_builder_shortcode( 'ttw_quote_archive', array(
+		'name'      => __( 'TTW - Danh Sách Báo Giá (Bento Grid)', 'tantien-window' ),
+		'category'  => __( 'Tân Tiến Window', 'tantien-window' ),
+		'priority'  => 25,
+		'thumbnail' => get_stylesheet_directory_uri() . '/assets/img/logo/logo.svg',
+		'options'   => array(
+			'posts_per_page' => array(
+				'type'    => 'textfield',
+				'heading' => __( 'Số lượng bài trên 1 trang' ),
+				'default' => '6',
+			),
+			'orderby' => array(
+				'type'    => 'select',
+				'heading' => __( 'Sắp xếp theo' ),
+				'default' => 'date',
+				'options' => array(
+					'date'       => __( 'Mới nhất / Ngày đăng' ),
+					'title'      => __( 'Tiêu đề bài viết' ),
+					'modified'   => __( 'Thời gian cập nhật' ),
+					'rand'       => __( 'Ngẫu nhiên' ),
+				),
+			),
+			'order' => array(
+				'type'    => 'select',
+				'heading' => __( 'Thứ tự sắp xếp' ),
+				'default' => 'DESC',
+				'options' => array(
+					'DESC' => __( 'Giảm dần (Mới nhất)' ),
+					'ASC'  => __( 'Tăng dần (Cũ nhất)' ),
+				),
+			),
+		),
+	) );
 } );
 
 
@@ -3028,7 +3142,262 @@ function ttw_register_shortcodes() {
 		return ob_get_clean();
 	} );
 
+	// Shortcode Quote Hero (Container)
+	add_shortcode( 'ttw_quote_hero', function( $atts, $content = null ) {
+		$inner = ! empty( $content ) ? do_shortcode( $content ) : '';
+		return '<section class="ttw-quote-hero ttw-animate ttw-fade-up">' . $inner . '</section>';
+	} );
 
+	// Shortcode Quote Title
+	add_shortcode( 'ttw_quote_title', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'BÁO GIÁ',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<h1 class="ttw-quote-title"' . $style_attr . '>' . esc_html( $a['text'] ) . '</h1>';
+	} );
+
+	// Shortcode Quote Subtitle
+	add_shortcode( 'ttw_quote_subtitle', function( $atts ) {
+		$a = shortcode_atts( array(
+			'text'      => 'BẢNG BÁO GIÁ THI CÔNG CỬA NHÔM KÍNH & KÍNH KIẾN TRÚC MỚI NHẤT',
+			'color'     => '',
+			'font_size' => '',
+			'css'       => '',
+		), $atts );
+
+		$styles = array();
+		if ( ! empty( $a['color'] ) )     $styles[] = 'color:' . esc_attr( $a['color'] ) . ' !important';
+		if ( ! empty( $a['font_size'] ) ) $styles[] = 'font-size:' . esc_attr( $a['font_size'] );
+		if ( ! empty( $a['css'] ) )       $styles[] = esc_attr( $a['css'] );
+		$style_attr = ! empty( $styles ) ? ' style="' . implode( ';', $styles ) . '"' : '';
+
+		return '<p class="ttw-quote-subtitle"' . $style_attr . '>' . esc_html( $a['text'] ) . '</p>';
+	} );
+
+	// Shortcode Quote Archive (Danh sách Báo giá Bento Grid + Lọc danh mục đồng bộ DB + Phân trang chuẩn)
+	add_shortcode( 'ttw_quote_archive', function( $atts ) {
+		$a = shortcode_atts( array(
+			'posts_per_page' => '6',
+			'count'          => '',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		), $atts );
+
+		$per_page = ! empty( $a['count'] ) ? intval( $a['count'] ) : intval( $a['posts_per_page'] );
+		if ( $per_page <= 0 ) {
+			$per_page = 6;
+		}
+
+		$ttw_paged    = ttw_get_current_paged();
+		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
+
+		// Lấy danh mục động từ Database (product_cat)
+		$ttw_db_terms = get_terms( array(
+			'taxonomy'   => 'product_cat',
+			'hide_empty' => false,
+			'exclude'    => array( 28, 66, 56, 57, 376 ),
+			'orderby'    => 'id',
+			'order'      => 'ASC',
+		) );
+
+		$ttw_categories = array(
+			array( 'slug' => 'all', 'name' => 'TẤT CẢ' ),
+		);
+
+		if ( ! empty( $ttw_db_terms ) && ! is_wp_error( $ttw_db_terms ) ) {
+			foreach ( $ttw_db_terms as $term_obj ) {
+				$ttw_categories[] = array(
+					'slug' => $term_obj->slug,
+					'name' => mb_strtoupper( html_entity_decode( $term_obj->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' ),
+				);
+			}
+		}
+
+		$query_args = array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $ttw_paged,
+			'cat'            => 31, // Chỉ lấy bài viết thuộc chuyên mục BÁO GIÁ
+			'orderby'        => sanitize_key( $a['orderby'] ),
+			'order'          => strtoupper( sanitize_key( $a['order'] ) ),
+		);
+
+		if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+			// Lọc theo tags liên quan của bài viết
+			$cat_terms_map = array(
+				'cabin-lan-can'      => array( 'cabin-lan-can', 'cabin-tam', 'cau-thang-kinh', 'lan-can-kinh', 'bao-gia-cabin-tam', 'bao-gia-lan-can-kinh', 'bao-gia-cau-thang-kinh', 'lan-can-kinh-ngoai-troi', 'phong-tam-kinh' ),
+				'cua-nhom'           => array( 'cua-nhom', 'nhom-xingfa', 'bao-gia-cua-nhom-xingfa-nhap-khau', 'nhom-cau-cach-nhiet', 'xingfa-class-a', 'cua-nhom-xingfa', 'cua-go-nhua-composite', 'bao-gia-cua-go-composite', 'cua-nhom-xigfa', 'bao-gia-cua-nhom', 'nhom-xingfa-nhap-khau', 'gia-cua-nhom-xingfa-nhap-khau' ),
+				'he-nhom-cao-cap'    => array( 'he-nhom-cao-cap', 'nhom-cao-cap', 'xingfa-class-a', 'nhom-cau-cach-nhiet', 'anodized', 'bao-gia-xingfa-class-a', 'bao-gia-cua-nhom-cau-cach-nhiet' ),
+				'kinh-cuong-luc'     => array( 'kinh-cuong-luc', 'cua-thuy-luc', 'vach-kinh-temper', 'bao-gia-cua-thuy-luc', 'bao-gia-kinh-cuong-luc', 'cua-kinh-thuy-luc', 'vach-kinh-cuong-luc' ),
+				'phu-kien'           => array( 'phu-kien', 'phu-kien-kinlong', 'phu-kien-roto', 'phu-kien-sigico', 'phu-kien-cmech', 'gia-phu-kien-vpp', 'phu-kien-cua-thuy-luc' ),
+				'vach-kinh-mat-dung' => array( 'vach-kinh-mat-dung', 'mat-dung-nhom-xingfa', 'thi-cong-vach-kinh-mat-dung', 'bao-gia-vach-kinh-mat-dung', 'vach-kinh-he-65', 'mat-dung-lo-do', 'vach-kinh-mat-dung-dau-do', 'nhom-xingfa-mat-dung' ),
+			);
+
+			$filter_terms = isset( $cat_terms_map[ $ttw_curr_cat ] ) ? $cat_terms_map[ $ttw_curr_cat ] : array( $ttw_curr_cat );
+
+			$query_args['tax_query'] = array(
+				array(
+					'taxonomy' => 'post_tag',
+					'field'    => 'slug',
+					'terms'    => $filter_terms,
+				),
+			);
+		}
+
+		$quote_query = new WP_Query( $query_args );
+
+		ob_start();
+		?>
+		<div class="ttw-quote-page">
+			<div class="ttw-quote-container">
+				<!-- Category Tabs -->
+				<nav class="ttw-quote-cat-nav ttw-animate ttw-fade-up" aria-label="Danh mục báo giá">
+					<ul class="ttw-quote-cat-list" id="ttw-quote-cat-filter">
+						<?php
+						$page_id  = get_queried_object_id();
+						$base_url = $page_id ? get_permalink( $page_id ) : home_url( '/bao-gia/' );
+						$base_url = strtok( $base_url, '?' );
+						$base_url = preg_replace( '#/page/[0-9]+/?$#', '', untrailingslashit( $base_url ) );
+						$base_url = trailingslashit( $base_url );
+						foreach ( $ttw_categories as $ttw_cat ) :
+							$cat_slug   = $ttw_cat['slug'];
+							$is_cat_act = ( $ttw_curr_cat === $cat_slug );
+							$cat_url    = ( 'all' === $cat_slug ) ? $base_url : add_query_arg( 'cat', $cat_slug, $base_url );
+							?>
+							<li class="ttw-quote-cat-item">
+								<a href="<?php echo esc_url( $cat_url ); ?>"
+								   class="ttw-quote-cat-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
+									<?php echo esc_html( $ttw_cat['name'] ); ?>
+								</a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</nav>
+
+				<!-- Bento Grid Cards -->
+				<section class="ttw-quote-grid" id="ttw-quote-grid" aria-label="Danh sách bài viết báo giá">
+					<?php if ( $quote_query->have_posts() ) : ?>
+						<?php while ( $quote_query->have_posts() ) : $quote_query->the_post(); ?>
+							<?php
+							$qid    = get_the_ID();
+							$qtitle = get_the_title();
+							$qlink  = get_permalink();
+							$qthumb = get_the_post_thumbnail_url( $qid, 'large' );
+							if ( ! $qthumb ) {
+								$qthumb = get_stylesheet_directory_uri() . '/assets/img/design/hero-bg.jpg';
+							}
+
+							$qexcerpt = wp_trim_words( get_the_excerpt(), 20 );
+							if ( ! $qexcerpt ) {
+								$qexcerpt = 'Bảng báo giá chi tiết, quy cách kỹ thuật và dự toán chi phí thi công từ Tân Tiến Window.';
+							}
+
+							// Xác định tag badge từ terms trong DB hoặc title
+							$terms_list = wp_get_post_terms( $qid, array( 'product_cat', 'category' ) );
+							$tag_badge  = '';
+							if ( ! empty( $terms_list ) && ! is_wp_error( $terms_list ) ) {
+								foreach ( $terms_list as $t_obj ) {
+									if ( ! in_array( $t_obj->slug, array( 'bao-gia', 'san-pham-2', 'tin-tuc', 'chua-phan-loai' ), true ) ) {
+										$tag_badge = mb_strtoupper( html_entity_decode( $t_obj->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' );
+										break;
+									}
+								}
+							}
+							if ( empty( $tag_badge ) ) {
+								if ( stripos( $qtitle, 'CLASS A' ) !== false ) {
+									$tag_badge = 'XINGFA CLASS A';
+								} elseif ( stripos( $qtitle, 'CẦU CÁCH NHIỆT' ) !== false ) {
+									$tag_badge = 'CẦU CÁCH NHIỆT';
+								} elseif ( stripos( $qtitle, 'XINGFA' ) !== false || stripos( $qtitle, 'NHÔM' ) !== false ) {
+									$tag_badge = 'CỬA NHÔM XINGFA';
+								} elseif ( stripos( $qtitle, 'MẶT DỰNG' ) !== false ) {
+									$tag_badge = 'VÁCH KÍNH MẶT DỰNG';
+								} elseif ( stripos( $qtitle, 'THỦY LỰC' ) !== false || stripos( $qtitle, 'CƯỜNG LỰC' ) !== false ) {
+									$tag_badge = 'KÍNH CƯỜNG LỰC';
+								} elseif ( stripos( $qtitle, 'CABIN' ) !== false || stripos( $qtitle, 'LAN CAN' ) !== false || stripos( $qtitle, 'CẦU THANG' ) !== false ) {
+									$tag_badge = 'CABIN & LAN CAN';
+								} elseif ( stripos( $qtitle, 'GỖ NHỰA' ) !== false || stripos( $qtitle, 'COMPOSITE' ) !== false ) {
+									$tag_badge = 'CỬA GỖ NHỰA';
+								} else {
+									$tag_badge = 'BÁO GIÁ CHI TIẾT';
+								}
+							}
+							?>
+							<article class="ttw-quote-card ttw-animate ttw-fade-up">
+								<a class="ttw-quote-card-thumb" href="<?php echo esc_url( $qlink ); ?>" title="<?php echo esc_attr( $qtitle ); ?>">
+									<img src="<?php echo esc_url( $qthumb ); ?>" alt="<?php echo esc_attr( $qtitle ); ?>" loading="lazy" />
+								</a>
+
+								<div class="ttw-quote-card-body">
+									<span class="ttw-quote-card-tag"><?php echo esc_html( $tag_badge ); ?></span>
+									<h3 class="ttw-quote-card-title">
+										<a href="<?php echo esc_url( $qlink ); ?>"><?php echo esc_html( $qtitle ); ?></a>
+									</h3>
+									<p class="ttw-quote-card-desc"><?php echo esc_html( $qexcerpt ); ?></p>
+
+									<div class="ttw-quote-card-footer">
+										<a class="ttw-quote-card-btn" href="<?php echo esc_url( $qlink ); ?>">
+											<span>XEM BÁO GIÁ</span>
+											<svg class="ttw-card-arrow" width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+												<path d="M8.3703 6.18749H0V4.81249H8.3703L4.5203 0.962498L5.49999 0L11 5.49999L5.49999 11L4.5203 10.0375L8.3703 6.18749Z" fill="currentColor"/>
+											</svg>
+										</a>
+									</div>
+								</div>
+							</article>
+						<?php endwhile; wp_reset_postdata(); ?>
+					<?php else : ?>
+						<div class="ttw-quote-empty" style="grid-column: 1 / -1;">
+							<p>Không tìm thấy bài viết báo giá nào trong danh mục này.</p>
+						</div>
+					<?php endif; ?>
+				</section>
+
+				<!-- Phân trang chuẩn -->
+				<?php if ( $quote_query->max_num_pages > 1 ) : ?>
+					<nav class="ttw-pagination-figma ttw-animate ttw-fade-up" aria-label="Phân trang báo giá">
+						<?php
+						$total_pages = $quote_query->max_num_pages;
+						$cat_params  = ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) ? array( 'cat' => $ttw_curr_cat ) : array();
+
+						for ( $i = 1; $i <= $total_pages; $i++ ) :
+							$page_url  = ttw_get_pagination_url( $i, $cat_params, $base_url );
+							$is_active = ( $i === $ttw_paged );
+							?>
+							<a href="<?php echo esc_url( $page_url ); ?>"
+							   class="ttw-page-btn<?php echo $is_active ? ' active' : ''; ?>"
+							   <?php echo $is_active ? 'aria-current="page"' : ''; ?>>
+								<?php echo $i; ?>
+							</a>
+						<?php endfor; ?>
+
+						<?php if ( $ttw_paged < $total_pages ) : ?>
+							<a href="<?php echo esc_url( ttw_get_pagination_url( $ttw_paged + 1, $cat_params, $base_url ) ); ?>"
+							   class="ttw-page-btn ttw-page-next"
+							   aria-label="Trang tiếp theo">
+								<svg width="6" height="10" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+									<path d="M3.06667 4L0 0.933333L0.933333 0L4.93333 4L0.933333 8L0 7.06667L3.06667 4Z" fill="currentColor"/>
+								</svg>
+							</a>
+						<?php endif; ?>
+					</nav>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+		return ob_get_clean();
+	} );
 
 	// Shortcode Partners (Container)
 
