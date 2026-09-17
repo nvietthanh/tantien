@@ -295,194 +295,6 @@ register_nav_menus( array(
 ) );
 
 
-// Tự động chèn Submenu cho "Sản phẩm" (6 sp), "Công trình" (3 dự án), và "Tin tức" (Tin tức & Tin tuyển dụng)
-add_filter( 'wp_nav_menu_objects', function( $items, $args ) {
-	if ( empty( $items ) ) {
-		return $items;
-	}
-
-	$product_menu_parent_id = 0;
-	$project_menu_parent_id = 0;
-	$news_menu_parent_id    = 0;
-
-	foreach ( $items as $item ) {
-		$title_upper = mb_strtoupper( trim( $item->title ), 'UTF-8' );
-		if ( $title_upper === 'SẢN PHẨM' || $item->object_id == 2466 ) {
-			$product_menu_parent_id = $item->ID;
-		} elseif ( $title_upper === 'CÔNG TRÌNH' ) {
-			$project_menu_parent_id = $item->ID;
-		} elseif ( strpos( $title_upper, 'TIN TỨC' ) !== false || $item->object_id == 320 ) {
-			$news_menu_parent_id = $item->ID;
-		}
-	}
-
-	if ( ! $product_menu_parent_id && ! $project_menu_parent_id && ! $news_menu_parent_id ) {
-		return $items;
-	}
-
-	// Truy vấn 6 sản phẩm tạo mới nhất
-	$latest_products = array();
-	if ( $product_menu_parent_id ) {
-		$latest_products = get_posts( array(
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => 6,
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-		) );
-	}
-
-	$new_items = array();
-	$order     = 1000;
-
-	foreach ( $items as $item ) {
-		$new_items[] = $item;
-
-		// 1. Submenu cho SẢN PHẨM (6 sản phẩm)
-		if ( $item->ID == $product_menu_parent_id && ! empty( $latest_products ) ) {
-			if ( ! in_array( 'menu-item-has-children', $item->classes ) ) {
-				$item->classes[] = 'menu-item-has-children';
-			}
-
-			foreach ( $latest_products as $prod ) {
-				$order++;
-				$sub_item                  = new stdClass();
-				$sub_item->ID              = 9999000 + $prod->ID;
-				$sub_item->db_id           = $sub_item->ID;
-				$sub_item->title           = get_the_title( $prod->ID );
-				$sub_item->url             = get_permalink( $prod->ID );
-				$sub_item->menu_item_parent = (string) $product_menu_parent_id;
-				$sub_item->post_parent     = 0;
-				$sub_item->type            = 'post_type';
-				$sub_item->object          = 'product';
-				$sub_item->object_id       = (string) $prod->ID;
-				$sub_item->type_label      = __( 'Sản phẩm', 'tantien-window' );
-				$sub_item->classes         = array( 'menu-item', 'menu-item-type-post_type', 'menu-item-object-product' );
-				$sub_item->target          = '';
-				$sub_item->attr_title      = '';
-				$sub_item->description     = '';
-				$sub_item->xfn             = '';
-				$sub_item->status          = 'publish';
-				$sub_item->menu_order      = $order;
-
-				$new_items[] = $sub_item;
-			}
-		}
-
-		// 2. Submenu cho CÔNG TRÌNH (lấy đúng 3 phần tử công trình tiêu biểu giống mảng dự án tantien-window)
-		if ( $item->ID == $project_menu_parent_id ) {
-			if ( ! in_array( 'menu-item-has-children', $item->classes ) ) {
-				$item->classes[] = 'menu-item-has-children';
-			}
-
-			// Mảng 3 công trình tiêu biểu mẫu từ theme tantien-window
-			$demo_projects = array(
-				array( 'title' => 'Ocean Villa Retreat', 'cat' => 'Biệt thự cao cấp', 'desc' => 'Đà Nẵng • Hệ cửa lùa panorama' ),
-				array( 'title' => 'Tech Hub Tower', 'cat' => 'Văn phòng', 'desc' => 'TP.HCM • Vách kính mặt dựng' ),
-				array( 'title' => 'Skyrise Penthouse', 'cat' => 'Căn hộ', 'desc' => 'Hà Nội • Cửa sổ cách âm' ),
-			);
-
-			// Nếu có bài viết công trình trong DB thì lấy 3 bài thực tế, nếu không dùng 3 dự án mẫu
-			$real_projects = get_posts( array(
-				'post_type'      => 'post',
-				'post_status'    => 'publish',
-				'posts_per_page' => 3,
-				'orderby'        => 'date',
-				'order'          => 'DESC',
-			) );
-
-			if ( ! empty( $real_projects ) ) {
-				foreach ( $real_projects as $proj ) {
-					$order++;
-					$sub_item                  = new stdClass();
-					$sub_item->ID              = 8888000 + $proj->ID;
-					$sub_item->db_id           = $sub_item->ID;
-					$sub_item->title           = get_the_title( $proj->ID );
-					$sub_item->url             = get_permalink( $proj->ID );
-					$sub_item->menu_item_parent = (string) $project_menu_parent_id;
-					$sub_item->post_parent     = 0;
-					$sub_item->type            = 'post_type';
-					$sub_item->object          = $proj->post_type;
-					$sub_item->object_id       = (string) $proj->ID;
-					$sub_item->type_label      = __( 'Công trình', 'tantien-window' );
-					$sub_item->classes         = array( 'menu-item', 'menu-item-type-post_type' );
-					$sub_item->target          = '';
-					$sub_item->attr_title      = '';
-					$sub_item->description     = '';
-					$sub_item->xfn             = '';
-					$sub_item->status          = 'publish';
-					$sub_item->menu_order      = $order;
-
-					$new_items[] = $sub_item;
-				}
-			} else {
-				foreach ( $demo_projects as $idx => $proj ) {
-					$order++;
-					$sub_item                  = new stdClass();
-					$sub_item->ID              = 8888000 + $idx;
-					$sub_item->db_id           = $sub_item->ID;
-					$sub_item->title           = $proj['title'];
-					$sub_item->url             = home_url( '/nhung-cong-trinh-tieu-bieu/' );
-					$sub_item->menu_item_parent = (string) $project_menu_parent_id;
-					$sub_item->post_parent     = 0;
-					$sub_item->type            = 'custom';
-					$sub_item->object          = 'custom';
-					$sub_item->object_id       = '0';
-					$sub_item->type_label      = __( 'Công trình', 'tantien-window' );
-					$sub_item->classes         = array( 'menu-item', 'menu-item-type-custom' );
-					$sub_item->target          = '';
-					$sub_item->attr_title      = '';
-					$sub_item->description     = '';
-					$sub_item->xfn             = '';
-					$sub_item->status          = 'publish';
-					$sub_item->menu_order      = $order;
-
-					$new_items[] = $sub_item;
-				}
-			}
-		}
-
-		// 3. Submenu cho TIN TỨC (2 trang: 1. Tin tức, 2. Tin tuyển dụng)
-		if ( $item->ID == $news_menu_parent_id ) {
-			if ( ! in_array( 'menu-item-has-children', $item->classes ) ) {
-				$item->classes[] = 'menu-item-has-children';
-			}
-
-			$news_sub_items = array(
-				array( 'title' => 'Tin tức & Bài viết', 'url' => home_url( '/tin-tuc/' ) ),
-				array( 'title' => 'Tin tuyển dụng', 'url' => home_url( '/tuyen-dung/' ) ),
-			);
-
-			foreach ( $news_sub_items as $idx => $nsub ) {
-				$order++;
-				$sub_item                  = new stdClass();
-				$sub_item->ID              = 7777000 + $idx;
-				$sub_item->db_id           = $sub_item->ID;
-				$sub_item->title           = $nsub['title'];
-				$sub_item->url             = $nsub['url'];
-				$sub_item->menu_item_parent = (string) $news_menu_parent_id;
-				$sub_item->post_parent     = 0;
-				$sub_item->type            = 'custom';
-				$sub_item->object          = 'custom';
-				$sub_item->object_id       = '0';
-				$sub_item->type_label      = __( 'Trang', 'tantien-window' );
-				$sub_item->classes         = array( 'menu-item', 'menu-item-type-custom' );
-				$sub_item->target          = '';
-				$sub_item->attr_title      = '';
-				$sub_item->description     = '';
-				$sub_item->xfn             = '';
-				$sub_item->status          = 'publish';
-				$sub_item->menu_order      = $order;
-
-				$new_items[] = $sub_item;
-			}
-		}
-
-	}
-
-	return $new_items;
-}, 10, 2 );
-
 
 // 1. Tắt Gutenberg editor để ưu tiên Classic Editor / UX Builder giống theme dich-vu-bao-ve
 
@@ -2719,7 +2531,7 @@ function ttw_register_shortcodes() {
 		);
 
 		if ( ! empty( $child_categories ) && ! is_wp_error( $child_categories ) ) {
-			// Nếu trong WP Admin có tạo các chuyên mục con, ưu tiên lấy 100% tự động
+			// Lấy động 100% từ subcategories của Công trình tiêu biểu trong Database
 			foreach ( $child_categories as $child_cat ) {
 				// Bỏ qua category featured nếu trùng
 				if ( $featured_id > 0 && (int) $child_cat->term_id === (int) $featured_id ) {
@@ -2734,51 +2546,10 @@ function ttw_register_shortcodes() {
 			// Khi người dùng bấm lọc category con
 			if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
 				$tax_query[] = array(
-					'taxonomy' => 'category',
-					'field'    => 'slug',
-					'terms'    => array( $ttw_curr_cat ),
-				);
-			}
-		} else {
-			// Fallback: nếu chưa tạo category con trong Admin thì dùng post_tag
-			$ttw_project_allowed_slugs = array(
-				'biet-thu'          => 'Biệt thự',
-				'van-phong'         => 'Văn phòng',
-				'can-ho-cao-cap'    => 'Căn hộ cao cấp',
-				'to-hop-thuong-mai' => 'Tổ hợp thương mại',
-			);
-
-			$ttw_project_tags = get_terms( array(
-				'taxonomy'   => 'post_tag',
-				'slug'       => array_keys( $ttw_project_allowed_slugs ),
-				'hide_empty' => false,
-			) );
-
-			if ( ! empty( $ttw_project_tags ) && ! is_wp_error( $ttw_project_tags ) ) {
-				$found_terms_map = array();
-				foreach ( $ttw_project_tags as $t ) {
-					$found_terms_map[ $t->slug ] = $t->name;
-				}
-				foreach ( $ttw_project_allowed_slugs as $slug => $default_name ) {
-					$ttw_categories[] = array(
-						'slug' => $slug,
-						'name' => isset( $found_terms_map[ $slug ] ) ? $found_terms_map[ $slug ] : $default_name,
-					);
-				}
-			} else {
-				foreach ( $ttw_project_allowed_slugs as $slug => $name ) {
-					$ttw_categories[] = array(
-						'slug' => $slug,
-						'name' => $name,
-					);
-				}
-			}
-
-			if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
-				$tax_query[] = array(
-					'taxonomy' => 'post_tag',
-					'field'    => 'slug',
-					'terms'    => array( $ttw_curr_cat ),
+					'taxonomy'         => 'category',
+					'field'            => 'slug',
+					'terms'            => array( $ttw_curr_cat ),
+					'include_children' => true,
 				);
 			}
 		}
@@ -2790,7 +2561,7 @@ function ttw_register_shortcodes() {
 
 		?>
 		<div class="ttw-projects-page" style="padding-top: 0;"><div class="ttw-projects-container" style="padding-top: 0; padding-bottom: 80px;">
-			<nav class="ttw-category-nav ttw-animate ttw-fade-up" aria-label="Danh mục công trình" style="margin-bottom: 40px;">
+			<nav class="ttw-category-nav ttw-animate ttw-fade-up" aria-label="Danh mục công trình">
 				<ul class="ttw-category-list" id="ttw-project-category-filter">
 					<?php
 					$base_url = strtok( get_permalink(), '?' );
@@ -2823,9 +2594,23 @@ function ttw_register_shortcodes() {
 							$proj_thumb = get_stylesheet_directory_uri() . '/assets/img/design/proj1-villa.jpg';
 						}
 
-						// Đọc dữ liệu động thực tế từ post_meta và tags trong Database
-						$tag_label = get_post_meta( $proj_id, 'ttw_project_tag_label', true );
-						if ( ! $tag_label ) {
+						// Đọc dữ liệu nhãn: Ưu tiên Category con đầu tiên của "CÔNG TRÌNH TIÊU BIỂU", sau đó đến post_meta, tags
+						$tag_label = '';
+						$post_cats = get_the_category( $proj_id );
+						if ( ! empty( $post_cats ) && ! is_wp_error( $post_cats ) ) {
+							foreach ( $post_cats as $p_cat ) {
+								if ( (int) $p_cat->parent === (int) $general_id ) {
+									$tag_label = mb_strtoupper( $p_cat->name, 'UTF-8' );
+									break;
+								}
+							}
+						}
+
+						if ( empty( $tag_label ) ) {
+							$tag_label = get_post_meta( $proj_id, 'ttw_project_tag_label', true );
+						}
+
+						if ( empty( $tag_label ) ) {
 							$tags_terms = get_the_tags( $proj_id );
 							$tag_label  = ( ! empty( $tags_terms ) && ! is_wp_error( $tags_terms ) ) ? mb_strtoupper( $tags_terms[0]->name, 'UTF-8' ) : 'CÔNG TRÌNH TIÊU BIỂU';
 						}
@@ -3389,26 +3174,60 @@ function ttw_register_shortcodes() {
 		$ttw_paged    = ttw_get_current_paged();
 		$ttw_curr_cat = isset( $_GET['cat'] ) ? sanitize_text_field( $_GET['cat'] ) : 'all';
 
-		// Lấy danh mục động từ Database (product_cat)
-		$ttw_db_terms = get_terms( array(
-			'taxonomy'   => 'product_cat',
+		// Lấy category cha BÁO GIÁ
+		$bao_gia_cat = get_term_by( 'slug', 'bao-gia', 'category' );
+		$bao_gia_id  = ( $bao_gia_cat && ! is_wp_error( $bao_gia_cat ) ) ? $bao_gia_cat->term_id : 31;
+
+		// 1. Quét danh mục con (Sub-categories) thuộc chuyên mục cha "BÁO GIÁ"
+		$child_categories = get_terms( array(
+			'taxonomy'   => 'category',
+			'parent'     => $bao_gia_id,
 			'hide_empty' => false,
-			'exclude'    => array( 28, 66, 56, 57, 376 ),
-			'orderby'    => 'id',
-			'order'      => 'ASC',
 		) );
 
 		$ttw_categories = array(
 			array( 'slug' => 'all', 'name' => 'TẤT CẢ' ),
 		);
 
-		if ( ! empty( $ttw_db_terms ) && ! is_wp_error( $ttw_db_terms ) ) {
-			foreach ( $ttw_db_terms as $term_obj ) {
+		// Xây dựng tax_query chỉ lấy các bài viết gắn danh mục /bao-gia hoặc category con của nó
+		$tax_query = array(
+			'relation' => 'AND',
+		);
+
+		if ( ! empty( $child_categories ) && ! is_wp_error( $child_categories ) ) {
+			// Lấy động 100% từ subcategories của Báo giá trong Database
+			foreach ( $child_categories as $child_cat ) {
 				$ttw_categories[] = array(
-					'slug' => $term_obj->slug,
-					'name' => mb_strtoupper( html_entity_decode( $term_obj->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' ),
+					'slug' => $child_cat->slug,
+					'name' => mb_strtoupper( html_entity_decode( $child_cat->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' ),
 				);
 			}
+
+			if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+				// Khi chọn 1 subcategory cụ thể
+				$tax_query[] = array(
+					'taxonomy'         => 'category',
+					'field'            => 'slug',
+					'terms'            => array( $ttw_curr_cat ),
+					'include_children' => true,
+				);
+			} else {
+				// Mặc định tab "Tất cả": Lấy bài viết thuộc danh mục bao-gia hoặc bất kỳ category con nào của nó
+				$tax_query[] = array(
+					'taxonomy'         => 'category',
+					'field'            => 'term_id',
+					'terms'            => array( $bao_gia_id ),
+					'include_children' => true,
+				);
+			}
+		} else {
+			// Nếu chưa tạo category con nào dưới Báo Giá: Chỉ hiển thị bài viết thuộc danh mục Báo Giá
+			$tax_query[] = array(
+				'taxonomy'         => 'category',
+				'field'            => 'term_id',
+				'terms'            => array( $bao_gia_id ),
+				'include_children' => true,
+			);
 		}
 
 		$query_args = array(
@@ -3416,32 +3235,10 @@ function ttw_register_shortcodes() {
 			'post_status'    => 'publish',
 			'posts_per_page' => $per_page,
 			'paged'          => $ttw_paged,
-			'cat'            => 31, // Chỉ lấy bài viết thuộc chuyên mục BÁO GIÁ
+			'tax_query'      => $tax_query,
 			'orderby'        => sanitize_key( $a['orderby'] ),
 			'order'          => strtoupper( sanitize_key( $a['order'] ) ),
 		);
-
-		if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
-			// Lọc theo tags liên quan của bài viết
-			$cat_terms_map = array(
-				'cabin-lan-can'      => array( 'cabin-lan-can', 'cabin-tam', 'cau-thang-kinh', 'lan-can-kinh', 'bao-gia-cabin-tam', 'bao-gia-lan-can-kinh', 'bao-gia-cau-thang-kinh', 'lan-can-kinh-ngoai-troi', 'phong-tam-kinh' ),
-				'cua-nhom'           => array( 'cua-nhom', 'nhom-xingfa', 'bao-gia-cua-nhom-xingfa-nhap-khau', 'nhom-cau-cach-nhiet', 'xingfa-class-a', 'cua-nhom-xingfa', 'cua-go-nhua-composite', 'bao-gia-cua-go-composite', 'cua-nhom-xigfa', 'bao-gia-cua-nhom', 'nhom-xingfa-nhap-khau', 'gia-cua-nhom-xingfa-nhap-khau' ),
-				'he-nhom-cao-cap'    => array( 'he-nhom-cao-cap', 'nhom-cao-cap', 'xingfa-class-a', 'nhom-cau-cach-nhiet', 'anodized', 'bao-gia-xingfa-class-a', 'bao-gia-cua-nhom-cau-cach-nhiet' ),
-				'kinh-cuong-luc'     => array( 'kinh-cuong-luc', 'cua-thuy-luc', 'vach-kinh-temper', 'bao-gia-cua-thuy-luc', 'bao-gia-kinh-cuong-luc', 'cua-kinh-thuy-luc', 'vach-kinh-cuong-luc' ),
-				'phu-kien'           => array( 'phu-kien', 'phu-kien-kinlong', 'phu-kien-roto', 'phu-kien-sigico', 'phu-kien-cmech', 'gia-phu-kien-vpp', 'phu-kien-cua-thuy-luc' ),
-				'vach-kinh-mat-dung' => array( 'vach-kinh-mat-dung', 'mat-dung-nhom-xingfa', 'thi-cong-vach-kinh-mat-dung', 'bao-gia-vach-kinh-mat-dung', 'vach-kinh-he-65', 'mat-dung-lo-do', 'vach-kinh-mat-dung-dau-do', 'nhom-xingfa-mat-dung' ),
-			);
-
-			$filter_terms = isset( $cat_terms_map[ $ttw_curr_cat ] ) ? $cat_terms_map[ $ttw_curr_cat ] : array( $ttw_curr_cat );
-
-			$query_args['tax_query'] = array(
-				array(
-					'taxonomy' => 'post_tag',
-					'field'    => 'slug',
-					'terms'    => $filter_terms,
-				),
-			);
-		}
 
 		$quote_query = new WP_Query( $query_args );
 
