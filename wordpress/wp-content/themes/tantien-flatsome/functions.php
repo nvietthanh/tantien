@@ -2519,11 +2519,13 @@ function ttw_register_shortcodes() {
 			);
 		}
 
-		// 1. Quét danh mục con (Sub-categories) thuộc chuyên mục cha "CÔNG TRÌNH TIÊU BIỂU"
+		// 1. Quét danh mục con (Sub-categories) thuộc chuyên mục cha "CÔNG TRÌNH TIÊU BIỂU" theo thứ tự từ cũ đến mới
 		$child_categories = get_terms( array(
 			'taxonomy'   => 'category',
 			'parent'     => $general_id,
 			'hide_empty' => false,
+			'orderby'    => 'term_id',
+			'order'      => 'ASC',
 		) );
 
 		$ttw_categories = array(
@@ -2539,7 +2541,7 @@ function ttw_register_shortcodes() {
 				}
 				$ttw_categories[] = array(
 					'slug' => $child_cat->slug,
-					'name' => $child_cat->name,
+					'name' => html_entity_decode( $child_cat->name, ENT_QUOTES, 'UTF-8' ),
 				);
 			}
 
@@ -2747,54 +2749,51 @@ function ttw_register_shortcodes() {
 
 		$news_query = new WP_Query( $query_args );
 
-		// Lấy danh sách danh mục cấp cao nhất (parent = 0) trực tiếp từ Database (loại bỏ category Công trình tiêu biểu ID 72, Uncategorized 1 & Những công trình tiêu biểu nhất)
+		// Lấy danh sách danh mục cấp cao nhất (parent = 0) trực tiếp từ Database theo thứ tự từ cũ đến mới
 		$ttw_db_terms = get_terms( array(
 			'taxonomy'   => 'category',
 			'parent'     => 0,
 			'hide_empty' => false,
 			'exclude'    => array( 72, 1, $featured_id ), // Exclude Công trình tiêu biểu, Dịch vụ & Những công trình tiêu biểu nhất
-			'orderby'    => 'name',
+			'orderby'    => 'term_id',
 			'order'      => 'ASC',
 		) );
 
 		$ttw_categories = array(
-			array( 'slug' => 'all', 'name' => 'TẤT CẢ' ),
+			array( 'slug' => 'all', 'name' => 'Tất cả' ),
 		);
 
 		if ( ! empty( $ttw_db_terms ) && ! is_wp_error( $ttw_db_terms ) ) {
 			foreach ( $ttw_db_terms as $term_obj ) {
 				$ttw_categories[] = array(
 					'slug' => $term_obj->slug,
-					'name' => mb_strtoupper( $term_obj->name, 'UTF-8' ),
+					'name' => html_entity_decode( $term_obj->name, ENT_QUOTES, 'UTF-8' ),
 				);
 			}
 		}
 
-
-
 		ob_start();
 		?>
-		<!-- Filter Categories Nav -->
-
-				<nav class="ttw-news-filter-nav ttw-animate ttw-fade-up" aria-label="Bộ lọc tin tức">
-					<ul class="ttw-news-filter-list">
-						<?php
-						$base_url = strtok( get_permalink(), '?' );
-						$base_url = preg_replace( '#/page/[0-9]+/?$#', '', untrailingslashit( $base_url ) );
-						$base_url = trailingslashit( $base_url );
-						foreach ( $ttw_categories as $ttw_cat ) :
-							$cat_slug   = $ttw_cat['slug'];
-							$is_cat_act = ( $ttw_curr_cat === $cat_slug );
-							$cat_url    = ( 'all' === $cat_slug ) ? $base_url : add_query_arg( 'cat', $cat_slug, $base_url );
-							?>
-							<li class="ttw-news-filter-item">
-								<a href="<?php echo esc_url( $cat_url ); ?>" class="ttw-news-filter-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
-									<?php echo esc_html( $ttw_cat['name'] ); ?>
-								</a>
-							</li>
-						<?php endforeach; ?>
-					</ul>
-				</nav>
+		<!-- Filter Categories Nav đồng bộ 100% với /san-pham-2 -->
+		<nav class="ttw-category-nav ttw-animate ttw-fade-up" aria-label="Bộ lọc tin tức">
+			<ul class="ttw-category-list" id="ttw-news-filter-list">
+				<?php
+				$base_url = strtok( get_permalink(), '?' );
+				$base_url = preg_replace( '#/page/[0-9]+/?$#', '', untrailingslashit( $base_url ) );
+				$base_url = trailingslashit( $base_url );
+				foreach ( $ttw_categories as $ttw_cat ) :
+					$cat_slug   = $ttw_cat['slug'];
+					$is_cat_act = ( $ttw_curr_cat === $cat_slug );
+					$cat_url    = ( 'all' === $cat_slug ) ? $base_url : add_query_arg( 'cat', $cat_slug, $base_url );
+					?>
+					<li class="ttw-category-item">
+						<a href="<?php echo esc_url( $cat_url ); ?>" class="ttw-category-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
+							<?php echo esc_html( $ttw_cat['name'] ); ?>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</nav>
 
 				<?php if ( $news_query->have_posts() ) : ?>
 					<?php
@@ -2969,8 +2968,9 @@ function ttw_register_shortcodes() {
 
 		$ttw_db_terms = get_terms( array(
 			'taxonomy'   => 'product_cat',
-			'hide_empty' => true,
-			'exclude'    => array( 28, 66, 56, 57 ),
+			'hide_empty' => false,
+			'orderby'    => 'term_id',
+			'order'      => 'ASC',
 		) );
 
 		$ttw_categories = array(
@@ -2979,10 +2979,12 @@ function ttw_register_shortcodes() {
 
 		if ( ! empty( $ttw_db_terms ) && ! is_wp_error( $ttw_db_terms ) ) {
 			foreach ( $ttw_db_terms as $term_obj ) {
-				$ttw_categories[] = array(
-					'slug' => $term_obj->slug,
-					'name' => $term_obj->name,
-				);
+				if ( ! in_array( $term_obj->slug, array( 'chua-phan-loai', 'uncategorized' ), true ) ) {
+					$ttw_categories[] = array(
+						'slug' => $term_obj->slug,
+						'name' => html_entity_decode( $term_obj->name, ENT_QUOTES, 'UTF-8' ),
+					);
+				}
 			}
 		}
 
@@ -3050,7 +3052,30 @@ function ttw_register_shortcodes() {
 						$prod_excerpt = 'Giải pháp nhôm kính cao cấp Tân Tiến Window, thiết kế hiện đại, bền bỉ và thẩm mỹ cao.';
 					}
 					$terms = get_the_terms( $prod_id, 'product_cat' );
-					$tag   = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? mb_strtoupper( $terms[0]->name, 'UTF-8' ) : 'HỆ NHÔM CAO CẤP';
+					$tag   = 'HỆ NHÔM CAO CẤP';
+					if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+						// Ưu tiên danh mục đang lọc nếu có
+						if ( 'all' !== $ttw_curr_cat && ! empty( $ttw_curr_cat ) ) {
+							foreach ( $terms as $term_item ) {
+								if ( $term_item->slug === $ttw_curr_cat ) {
+									$tag = mb_strtoupper( html_entity_decode( $term_item->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' );
+									break;
+								}
+							}
+						}
+						// Nếu chưa có hoặc xem tất cả: ưu tiên danh mục cụ thể (bỏ qua 'san-pham-2', 'san-pham', 'bao-gia', 'tin-tuc')
+						if ( 'HỆ NHÔM CAO CẤP' === $tag ) {
+							foreach ( $terms as $term_item ) {
+								if ( ! in_array( $term_item->slug, array( 'san-pham', 'san-pham-2', 'bao-gia', 'tin-tuc', 'chua-phan-loai', 'uncategorized' ), true ) ) {
+									$tag = mb_strtoupper( html_entity_decode( $term_item->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' );
+									break;
+								}
+							}
+						}
+						if ( 'HỆ NHÔM CAO CẤP' === $tag && ! empty( $terms[0] ) ) {
+							$tag = mb_strtoupper( html_entity_decode( $terms[0]->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' );
+						}
+					}
 					?>
 					<article class="ttw-card-bento ttw-animate ttw-fade-up">
 						<a class="ttw-card-thumb" href="<?php echo esc_url( $prod_link ); ?>" title="<?php echo esc_attr( $prod_title ); ?>">
@@ -3073,6 +3098,7 @@ function ttw_register_shortcodes() {
 								</a>
 							</div>
 						</div>
+
 					</article>
 				<?php endwhile; wp_reset_postdata(); ?>
 			<?php else : ?>
@@ -3178,15 +3204,17 @@ function ttw_register_shortcodes() {
 		$bao_gia_cat = get_term_by( 'slug', 'bao-gia', 'category' );
 		$bao_gia_id  = ( $bao_gia_cat && ! is_wp_error( $bao_gia_cat ) ) ? $bao_gia_cat->term_id : 31;
 
-		// 1. Quét danh mục con (Sub-categories) thuộc chuyên mục cha "BÁO GIÁ"
+		// 1. Quét danh mục con (Sub-categories) thuộc chuyên mục cha "BÁO GIÁ" theo thứ tự từ cũ đến mới
 		$child_categories = get_terms( array(
 			'taxonomy'   => 'category',
 			'parent'     => $bao_gia_id,
 			'hide_empty' => false,
+			'orderby'    => 'term_id',
+			'order'      => 'ASC',
 		) );
 
 		$ttw_categories = array(
-			array( 'slug' => 'all', 'name' => 'TẤT CẢ' ),
+			array( 'slug' => 'all', 'name' => 'Tất cả' ),
 		);
 
 		// Xây dựng tax_query chỉ lấy các bài viết gắn danh mục /bao-gia hoặc category con của nó
@@ -3199,7 +3227,7 @@ function ttw_register_shortcodes() {
 			foreach ( $child_categories as $child_cat ) {
 				$ttw_categories[] = array(
 					'slug' => $child_cat->slug,
-					'name' => mb_strtoupper( html_entity_decode( $child_cat->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' ),
+					'name' => html_entity_decode( $child_cat->name, ENT_QUOTES, 'UTF-8' ),
 				);
 			}
 
@@ -3246,9 +3274,9 @@ function ttw_register_shortcodes() {
 		?>
 		<div class="ttw-quote-page">
 			<div class="ttw-quote-container">
-				<!-- Category Tabs -->
-				<nav class="ttw-quote-cat-nav ttw-animate ttw-fade-up" aria-label="Danh mục báo giá">
-					<ul class="ttw-quote-cat-list" id="ttw-quote-cat-filter">
+				<!-- Category Tabs đồng bộ hoàn toàn với /san-pham-2 -->
+				<nav class="ttw-category-nav ttw-animate ttw-fade-up" aria-label="Danh mục báo giá">
+					<ul class="ttw-category-list" id="ttw-quote-cat-filter">
 						<?php
 						$page_id  = get_queried_object_id();
 						$base_url = $page_id ? get_permalink( $page_id ) : home_url( '/bao-gia/' );
@@ -3260,9 +3288,9 @@ function ttw_register_shortcodes() {
 							$is_cat_act = ( $ttw_curr_cat === $cat_slug );
 							$cat_url    = ( 'all' === $cat_slug ) ? $base_url : add_query_arg( 'cat', $cat_slug, $base_url );
 							?>
-							<li class="ttw-quote-cat-item">
+							<li class="ttw-category-item">
 								<a href="<?php echo esc_url( $cat_url ); ?>"
-								   class="ttw-quote-cat-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
+								   class="ttw-category-tab<?php echo $is_cat_act ? ' active' : ''; ?>">
 									<?php echo esc_html( $ttw_cat['name'] ); ?>
 								</a>
 							</li>
@@ -3671,6 +3699,3 @@ function ttw_register_shortcodes() {
 
 }
 add_action( 'init', 'ttw_register_shortcodes' );
-
-
-

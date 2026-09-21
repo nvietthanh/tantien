@@ -55,8 +55,16 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 					$attachment_ids = array( $main_img_id );
 				}
 				?>
-				<div class="ttw-pd-main-img-wrap">
+				<div class="ttw-pd-main-img-wrap" id="ttw-pd-main-wrap" title="Nhấp để xem ảnh đầy đủ">
 					<img id="ttw-pd-main-image" src="<?php echo esc_url( $main_img_url ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>" />
+					<div class="ttw-pd-zoom-hint" aria-hidden="true">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="11" cy="11" r="8"></circle>
+							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+							<line x1="11" y1="8" x2="11" y2="14"></line>
+							<line x1="8" y1="11" x2="14" y2="11"></line>
+						</svg>
+					</div>
 				</div>
 
 				<?php if ( ! empty( $attachment_ids ) ) : ?>
@@ -93,15 +101,15 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 				if ( empty( $cat_badge_text ) ) {
 					$product_terms = get_the_terms( get_the_ID(), 'product_cat' );
 					if ( ! empty( $product_terms ) && ! is_wp_error( $product_terms ) ) {
-						// Ưu tiên danh mục cấp con / cụ thể (bỏ qua slug 'san-pham', 'san-pham-2')
+						// Ưu tiên danh mục cấp con / cụ thể (bỏ qua slug 'san-pham', 'san-pham-2', 'bao-gia', 'tin-tuc')
 						foreach ( $product_terms as $term_item ) {
-							if ( 'san-pham-2' !== $term_item->slug && 'san-pham' !== $term_item->slug ) {
-								$cat_badge_text = mb_strtoupper( $term_item->name, 'UTF-8' );
+							if ( ! in_array( $term_item->slug, array( 'san-pham', 'san-pham-2', 'bao-gia', 'tin-tuc', 'chua-phan-loai', 'uncategorized' ), true ) ) {
+								$cat_badge_text = mb_strtoupper( html_entity_decode( $term_item->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' );
 								break;
 							}
 						}
 						if ( empty( $cat_badge_text ) ) {
-							$cat_badge_text = mb_strtoupper( $product_terms[0]->name, 'UTF-8' );
+							$cat_badge_text = mb_strtoupper( html_entity_decode( $product_terms[0]->name, ENT_QUOTES, 'UTF-8' ), 'UTF-8' );
 						}
 					}
 				}
@@ -133,15 +141,15 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 				$p_cats = get_the_terms( get_the_ID(), 'product_cat' );
 				if ( ! empty( $p_cats ) && ! is_wp_error( $p_cats ) ) {
 					foreach ( $p_cats as $c_item ) {
-						if ( 'san-pham-2' !== $c_item->slug && 'san-pham' !== $c_item->slug && 'uncategorized' !== $c_item->slug ) {
-							$all_cat_tags[] = $c_item->name;
+						if ( ! in_array( $c_item->slug, array( 'san-pham', 'san-pham-2', 'bao-gia', 'tin-tuc', 'chua-phan-loai', 'uncategorized' ), true ) ) {
+							$all_cat_tags[] = html_entity_decode( $c_item->name, ENT_QUOTES, 'UTF-8' );
 						}
 					}
 				}
 				$p_tags = get_the_terms( get_the_ID(), 'product_tag' );
 				if ( ! empty( $p_tags ) && ! is_wp_error( $p_tags ) ) {
 					foreach ( $p_tags as $t_item ) {
-						$all_cat_tags[] = $t_item->name;
+						$all_cat_tags[] = html_entity_decode( $t_item->name, ENT_QUOTES, 'UTF-8' );
 					}
 				}
 
@@ -255,10 +263,13 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 						$r_cat_name = 'SẢN PHẨM';
 						if ( ! empty( $r_terms ) && ! is_wp_error( $r_terms ) ) {
 							foreach ( $r_terms as $r_t ) {
-								if ( 'san-pham-2' !== $r_t->slug && 'san-pham' !== $r_t->slug ) {
-									$r_cat_name = $r_t->name;
+								if ( ! in_array( $r_t->slug, array( 'san-pham', 'san-pham-2', 'bao-gia', 'tin-tuc', 'chua-phan-loai', 'uncategorized' ), true ) ) {
+									$r_cat_name = html_entity_decode( $r_t->name, ENT_QUOTES, 'UTF-8' );
 									break;
 								}
+							}
+							if ( 'SẢN PHẨM' === $r_cat_name && ! empty( $r_terms[0] ) ) {
+								$r_cat_name = html_entity_decode( $r_terms[0]->name, ENT_QUOTES, 'UTF-8' );
 							}
 						}
 						?>
@@ -292,25 +303,303 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 	</div>
 </div>
 
+<!-- Modal Lightbox Preview Full Image Premium -->
+<div id="ttw-image-lightbox" class="ttw-lightbox-modal" aria-hidden="true" role="dialog" aria-label="Xem ảnh sản phẩm kích thước đầy đủ">
+	<div class="ttw-lightbox-backdrop"></div>
+	
+	<!-- Top Bar Header: Title & Action Tools -->
+	<div class="ttw-lightbox-header">
+		<div class="ttw-lightbox-title-wrap">
+			<span class="ttw-lightbox-tag">ẢNH SẢN PHẨM</span>
+			<h4 class="ttw-lightbox-title"><?php echo esc_html( get_the_title() ); ?></h4>
+		</div>
+
+		<!-- Control Toolbar -->
+		<div class="ttw-lightbox-toolbar">
+			<button type="button" class="ttw-lightbox-btn" id="ttw-lb-zoom-in" title="Phóng to (+)">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+					<line x1="11" y1="8" x2="11" y2="14"></line>
+					<line x1="8" y1="11" x2="14" y2="11"></line>
+				</svg>
+			</button>
+			<button type="button" class="ttw-lightbox-btn" id="ttw-lb-zoom-out" title="Thu nhỏ (-)">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+					<line x1="8" y1="11" x2="14" y2="11"></line>
+				</svg>
+			</button>
+			<button type="button" class="ttw-lightbox-btn" id="ttw-lb-rotate" title="Xoay ảnh 90°">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="23 4 23 10 17 10"></polyline>
+					<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+				</svg>
+			</button>
+			<button type="button" class="ttw-lightbox-btn" id="ttw-lb-reset" title="Khôi phục kích thước ban đầu">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+					<path d="M3 3v5h5"></path>
+				</svg>
+			</button>
+			<div class="ttw-lightbox-divider"></div>
+			<button type="button" class="ttw-lightbox-btn ttw-lightbox-close-btn" id="ttw-lightbox-close-btn" title="Đóng (ESC)">
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+	</div>
+
+	<!-- Navigation Arrow Buttons (Nếu có nhiều ảnh) -->
+	<?php if ( ! empty( $attachment_ids ) && count( $attachment_ids ) > 1 ) : ?>
+		<button type="button" class="ttw-lightbox-nav prev" id="ttw-lb-prev" aria-label="Ảnh trước">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="15 18 9 12 15 6"></polyline>
+			</svg>
+		</button>
+		<button type="button" class="ttw-lightbox-nav next" id="ttw-lb-next" aria-label="Ảnh kế tiếp">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="9 18 15 12 9 6"></polyline>
+			</svg>
+		</button>
+	<?php endif; ?>
+
+	<div class="ttw-lightbox-viewport" id="ttw-lightbox-viewport">
+		<div class="ttw-lightbox-img-stage" id="ttw-lightbox-stage">
+			<img id="ttw-lightbox-img" src="" alt="<?php echo esc_attr( get_the_title() ); ?>" draggable="false" />
+		</div>
+	</div>
+
+	<!-- Bottom Indicator / Counter -->
+	<div class="ttw-lightbox-footer">
+		<span id="ttw-lb-counter">Cuộn chuột hoặc nhấp phím +/- để phóng to/thu nhỏ</span>
+	</div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	// Gallery Thumbnail Switcher
+	// 1. Gallery Thumbnail Switcher
 	const mainImg = document.getElementById('ttw-pd-main-image');
-	const thumbs = document.querySelectorAll('.ttw-pd-thumb-item');
-	if (mainImg && thumbs.length > 0) {
-		thumbs.forEach(function(thumb) {
+	const mainWrap = document.getElementById('ttw-pd-main-wrap');
+	const thumbs = Array.from(document.querySelectorAll('.ttw-pd-thumb-item'));
+	let currentIndex = 0;
+	
+	function setActiveThumb(index) {
+		if (index >= 0 && index < thumbs.length) {
+			currentIndex = index;
+			thumbs.forEach(t => t.classList.remove('active'));
+			thumbs[index].classList.add('active');
+			const fullUrl = thumbs[index].getAttribute('data-full');
+			if (fullUrl && mainImg) {
+				mainImg.src = fullUrl;
+			}
+		}
+	}
+
+	if (thumbs.length > 0) {
+		thumbs.forEach(function(thumb, idx) {
 			thumb.addEventListener('click', function() {
-				thumbs.forEach(t => t.classList.remove('active'));
-				this.classList.add('active');
-				const fullUrl = this.getAttribute('data-full');
-				if (fullUrl) {
-					mainImg.src = fullUrl;
-				}
+				setActiveThumb(idx);
 			});
 		});
 	}
+
+	// 2. Advanced Lightbox Modal
+	const lightbox = document.getElementById('ttw-image-lightbox');
+	const lightboxImg = document.getElementById('ttw-lightbox-img');
+	const stage = document.getElementById('ttw-lightbox-stage');
+	const viewport = document.getElementById('ttw-lightbox-viewport');
+	const closeBtn = document.getElementById('ttw-lightbox-close-btn');
+	const backdrop = lightbox ? lightbox.querySelector('.ttw-lightbox-backdrop') : null;
+	const btnZoomIn = document.getElementById('ttw-lb-zoom-in');
+	const btnZoomOut = document.getElementById('ttw-lb-zoom-out');
+	const btnRotate = document.getElementById('ttw-lb-rotate');
+	const btnReset = document.getElementById('ttw-lb-reset');
+	const btnPrev = document.getElementById('ttw-lb-prev');
+	const btnNext = document.getElementById('ttw-lb-next');
+	const counter = document.getElementById('ttw-lb-counter');
+
+	let scale = 1;
+	let rotation = 0;
+	let posX = 0;
+	let posY = 0;
+	let isDragging = false;
+	let startX = 0;
+	let startY = 0;
+
+	function updateTransform() {
+		if (stage) {
+			stage.style.transform = `translate(${posX}px, ${posY}px) scale(${scale}) rotate(${rotation}deg)`;
+			if (scale > 1) {
+				stage.classList.add('is-zoomed');
+			} else {
+				stage.classList.remove('is-zoomed');
+				posX = 0;
+				posY = 0;
+			}
+		}
+		if (counter && thumbs.length > 0) {
+			counter.textContent = `Ảnh ${currentIndex + 1} / ${thumbs.length} — Thu phóng: ${Math.round(scale * 100)}%`;
+		}
+	}
+
+	function resetTransform() {
+		scale = 1;
+		rotation = 0;
+		posX = 0;
+		posY = 0;
+		updateTransform();
+	}
+
+	function zoom(delta) {
+		scale = Math.min(Math.max(0.5, scale + delta), 4);
+		updateTransform();
+	}
+
+	function rotate() {
+		rotation = (rotation + 90) % 360;
+		updateTransform();
+	}
+
+	function updateLightboxImage() {
+		if (lightboxImg && mainImg) {
+			lightboxImg.src = mainImg.src;
+			resetTransform();
+		}
+	}
+
+	function openLightbox() {
+		if (lightbox && mainImg) {
+			updateLightboxImage();
+			lightbox.classList.add('active');
+			lightbox.setAttribute('aria-hidden', 'false');
+			document.body.style.overflow = 'hidden';
+		}
+	}
+
+	function closeLightbox() {
+		if (lightbox) {
+			lightbox.classList.remove('active');
+			lightbox.setAttribute('aria-hidden', 'true');
+			document.body.style.overflow = '';
+			resetTransform();
+		}
+	}
+
+	function showPrevImage() {
+		if (thumbs.length > 1) {
+			const nextIdx = (currentIndex - 1 + thumbs.length) % thumbs.length;
+			setActiveThumb(nextIdx);
+			updateLightboxImage();
+		}
+	}
+
+	function showNextImage() {
+		if (thumbs.length > 1) {
+			const nextIdx = (currentIndex + 1) % thumbs.length;
+			setActiveThumb(nextIdx);
+			updateLightboxImage();
+		}
+	}
+
+	// Event listeners
+	if (mainWrap) mainWrap.addEventListener('click', openLightbox);
+	if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+	if (backdrop) backdrop.addEventListener('click', closeLightbox);
+	if (btnZoomIn) btnZoomIn.addEventListener('click', () => zoom(0.3));
+	if (btnZoomOut) btnZoomOut.addEventListener('click', () => zoom(-0.3));
+	if (btnRotate) btnRotate.addEventListener('click', rotate);
+	if (btnReset) btnReset.addEventListener('click', resetTransform);
+	if (btnPrev) btnPrev.addEventListener('click', showPrevImage);
+	if (btnNext) btnNext.addEventListener('click', showNextImage);
+
+	// Mouse wheel zoom inside lightbox
+	if (viewport) {
+		viewport.addEventListener('wheel', function(e) {
+			e.preventDefault();
+			const delta = e.deltaY < 0 ? 0.2 : -0.2;
+			zoom(delta);
+		}, { passive: false });
+
+		// Dragging to Pan image when zoomed (Mouse + Touch)
+		viewport.addEventListener('mousedown', function(e) {
+			if (scale > 1) {
+				isDragging = true;
+				startX = e.clientX - posX;
+				startY = e.clientY - posY;
+				stage.classList.add('is-dragging');
+			}
+		});
+
+		window.addEventListener('mousemove', function(e) {
+			if (isDragging) {
+				posX = e.clientX - startX;
+				posY = e.clientY - startY;
+				updateTransform();
+			}
+		});
+
+		window.addEventListener('mouseup', function() {
+			if (isDragging) {
+				isDragging = false;
+				if (stage) stage.classList.remove('is-dragging');
+			}
+		});
+
+		// Touch swipe / pan on Mobile
+		let touchStartX = 0;
+		let touchStartY = 0;
+		viewport.addEventListener('touchstart', function(e) {
+			if (e.touches.length === 1) {
+				touchStartX = e.touches[0].clientX;
+				touchStartY = e.touches[0].clientY;
+				if (scale > 1) {
+					isDragging = true;
+					startX = e.touches[0].clientX - posX;
+					startY = e.touches[0].clientY - posY;
+				}
+			}
+		}, { passive: true });
+
+		viewport.addEventListener('touchmove', function(e) {
+			if (isDragging && scale > 1 && e.touches.length === 1) {
+				posX = e.touches[0].clientX - startX;
+				posY = e.touches[0].clientY - startY;
+				updateTransform();
+			}
+		}, { passive: true });
+
+		viewport.addEventListener('touchend', function(e) {
+			if (isDragging) {
+				isDragging = false;
+			} else if (scale === 1 && e.changedTouches.length === 1) {
+				const touchEndX = e.changedTouches[0].clientX;
+				const diffX = touchEndX - touchStartX;
+				if (diffX > 50) {
+					showPrevImage(); // Vuốt sang phải -> Ảnh trước
+				} else if (diffX < -50) {
+					showNextImage(); // Vuốt sang trái -> Ảnh sau
+				}
+			}
+		});
+	}
+
+	// Keyboard navigation & Shortcuts
+	document.addEventListener('keydown', function(e) {
+		if (!lightbox || !lightbox.classList.contains('active')) return;
+		if (e.key === 'Escape') closeLightbox();
+		if (e.key === 'ArrowLeft') showPrevImage();
+		if (e.key === 'ArrowRight') showNextImage();
+		if (e.key === '+' || e.key === '=') zoom(0.3);
+		if (e.key === '-' || e.key === '_') zoom(-0.3);
+		if (e.key === 'r' || e.key === 'R') rotate();
+	});
 });
 </script>
 
 <?php
 get_footer();
+
