@@ -276,21 +276,13 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 						<article class="ttw-card-bento ttw-animate ttw-fade-up">
 							<a class="ttw-card-thumb" href="<?php echo esc_url( $r_link ); ?>" title="<?php echo esc_attr( $r_title ); ?>">
 								<img src="<?php echo esc_url( $r_img ); ?>" alt="<?php echo esc_attr( $r_title ); ?>" loading="lazy" />
-							</a>
-							<div class="ttw-card-content">
-								<span class="ttw-card-tag"><?php echo esc_html( mb_strtoupper( $r_cat_name, 'UTF-8' ) ); ?></span>
-								<h3 class="ttw-card-title">
-									<a href="<?php echo esc_url( $r_link ); ?>"><?php echo esc_html( $r_title ); ?></a>
-								</h3>
-								<div class="ttw-card-action">
-									<a href="<?php echo esc_url( $r_link ); ?>" class="ttw-card-btn">
-										<span>XEM CHI TIẾT</span>
-										<svg width="12" height="12" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-											<path d="M8.3703 6.18749H0V4.81249H8.3703L4.5203 0.962498L5.49999 0L11 5.49999L5.49999 11L4.5203 10.0375L8.3703 6.18749Z" fill="currentColor"/>
-										</svg>
-									</a>
+								<div class="ttw-card-overlay">
+									<div class="ttw-card-meta">
+										<span class="ttw-card-tag"><?php echo esc_html( mb_strtoupper( $r_cat_name, 'UTF-8' ) ); ?></span>
+									</div>
+									<h3 class="ttw-card-title"><?php echo esc_html( $r_title ); ?></h3>
 								</div>
-							</div>
+							</a>
 						</article>
 					<?php
 					endwhile;

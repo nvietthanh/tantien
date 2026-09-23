@@ -747,33 +747,24 @@ add_action( 'ux_builder_setup', function() {
 				'heading'     => __( 'Mô tả ngắn bên dưới tiêu đề (Chữ mờ)' ),
 				'default'     => 'Tân Tiến Window cung cấp các giải pháp cửa nhôm kính, cửa kính, vách kính, mặt dựng và kính kiến trúc cho nhà ở, biệt thự, văn phòng và công trình thương mại.',
 			),
-
-
-			'count' => array(
-				'type'    => 'textfield',
-				'heading' => __( 'Số lượng sản phẩm' ),
-				'default' => '6',
-			),
 			'orderby' => array(
 				'type'    => 'select',
 				'heading' => __( 'Sắp xếp theo tiêu chí' ),
-				'default' => 'date',
+				'default' => 'term_id',
 				'options' => array(
-					'date'          => __( 'Mới nhất / Ngày tạo' ),
-					'title'         => __( 'Tên sản phẩm (A-Z)' ),
-					'modified'      => __( 'Thời gian cập nhật' ),
-					'rand'          => __( 'Ngẫu nhiên' ),
-					'menu_order'    => __( 'Thứ tự ưu tiên (Menu order)' ),
-					'comment_count' => __( 'Nhiều đánh giá nhất' ),
+					'term_id'    => __( 'Thứ tự ID / Thời gian tạo (Mặc định)' ),
+					'name'       => __( 'Tên danh mục (A-Z)' ),
+					'count'      => __( 'Số lượng sản phẩm' ),
+					'slug'       => __( 'Slug' ),
 				),
 			),
 			'order' => array(
 				'type'    => 'select',
 				'heading' => __( 'Thứ tự sắp xếp' ),
-				'default' => 'DESC',
+				'default' => 'ASC',
 				'options' => array(
-					'DESC' => __( 'Giảm dần (Mới nhất / Z-A)' ),
-					'ASC'  => __( 'Tăng dần (Cũ nhất / A-Z)' ),
+					'ASC'  => __( 'Cũ nhất trước / A-Z (Tăng dần)' ),
+					'DESC' => __( 'Mới nhất trước / Z-A (Giảm dần)' ),
 				),
 			),
 		),
@@ -1968,15 +1959,79 @@ function ttw_register_shortcodes() {
 	} );
 
 
-	// Shortcode Products
+	// Shortcode Products (Hiển thị danh sách danh mục sản phẩm)
 	add_shortcode( 'ttw_products', function( $atts ) {
 		$a = shortcode_atts( array(
 			'heading' => 'Chúng tôi cung cấp',
 			'desc'    => 'Tân Tiến Window cung cấp các giải pháp cửa nhôm kính, cửa kính, vách kính, mặt dựng và kính kiến trúc cho nhà ở, biệt thự, văn phòng và công trình thương mại.',
-			'count'   => '6',
-			'orderby' => 'date',
-			'order'   => 'DESC',
+			'cat'     => '',
+			'ids'     => '',
+			'count'   => '',
+			'orderby' => 'term_id',
+			'order'   => 'ASC',
 		), $atts );
+
+		$cat_args = array(
+			'taxonomy'   => 'product_cat',
+			'hide_empty' => true,
+			'orderby'    => sanitize_key( $a['orderby'] ),
+			'order'      => strtoupper( sanitize_key( $a['order'] ) ),
+		);
+
+		// Xử lý danh mục được chọn (qua cat hoặc ids)
+		$selected_cats = array();
+		$cat_input = ! empty( $a['cat'] ) ? $a['cat'] : $a['ids'];
+		if ( ! empty( $cat_input ) ) {
+			if ( is_array( $cat_input ) ) {
+				$selected_cats = $cat_input;
+			} else {
+				$selected_cats = array_map( 'trim', explode( ',', $cat_input ) );
+			}
+		}
+
+		if ( ! empty( $selected_cats ) ) {
+			// Kiểm tra xem là ID (số) hay slug
+			$numeric_ids = array();
+			$slug_list   = array();
+			foreach ( $selected_cats as $item ) {
+				if ( is_numeric( $item ) ) {
+					$numeric_ids[] = intval( $item );
+				} elseif ( ! empty( $item ) ) {
+					$slug_list[] = sanitize_title( $item );
+				}
+			}
+
+			if ( ! empty( $numeric_ids ) ) {
+				$cat_args['include'] = $numeric_ids;
+				if ( empty( $a['orderby'] ) || 'term_id' === $a['orderby'] || 'include' === $a['orderby'] ) {
+					$cat_args['orderby'] = 'include';
+				}
+			} elseif ( ! empty( $slug_list ) ) {
+				$cat_args['slug'] = $slug_list;
+			}
+		}
+
+		$exclude_slugs = array( 'chua-phan-loai', 'uncategorized' );
+
+		if ( empty( $selected_cats ) ) {
+			// Lấy danh sách term ID cần loại trừ
+			$exclude_ids = array();
+			foreach ( $exclude_slugs as $eslug ) {
+				$ex_term = get_term_by( 'slug', $eslug, 'product_cat' );
+				if ( $ex_term && ! is_wp_error( $ex_term ) ) {
+					$exclude_ids[] = $ex_term->term_id;
+				}
+			}
+			if ( ! empty( $exclude_ids ) ) {
+				$cat_args['exclude'] = $exclude_ids;
+			}
+		}
+
+		if ( intval( $a['count'] ) > 0 ) {
+			$cat_args['number'] = intval( $a['count'] );
+		}
+
+		$terms = get_terms( $cat_args );
 
 		ob_start();
 		?>
@@ -1997,43 +2052,74 @@ function ttw_register_shortcodes() {
 					</a>
 				</div>
 
-				<div class="ttw-showcase ttw-animate ttw-fade-up">
+				<div class="ttw-door-cat-grid ttw-animate ttw-fade-up">
 					<?php
-					$q_args = array(
-						'post_type'      => 'product',
-						'post_status'    => 'publish',
-						'posts_per_page' => intval($a['count']),
-						'orderby'        => sanitize_key($a['orderby']),
-						'order'          => strtoupper(sanitize_key($a['order'])),
-						'no_found_rows'  => true,
-					);
+					if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) :
+						$cat_idx = 0;
+						foreach ( $terms as $term ) :
+							if ( empty( $selected_cats ) && in_array( $term->slug, $exclude_slugs, true ) ) {
+								continue;
+							}
+							$cat_idx++;
+							$num_str    = sprintf( '%02d', $cat_idx );
+							$cat_url    = add_query_arg( 'cat', $term->slug, home_url( '/san-pham-2/' ) );
+							$term_title = html_entity_decode( $term->name, ENT_QUOTES, 'UTF-8' );
+							$p_count    = $term->count;
 
-					$q = new WP_Query($q_args);
-					while ($q->have_posts()) :
-						$q->the_post();
-						$product_img = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
+							// Lấy hình ảnh tiêu biểu cho danh mục
+							$thumb_id = get_term_meta( $term->term_id, 'thumbnail_id', true );
+							$cat_img  = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium_large' ) : '';
+
+							if ( ! $cat_img ) {
+								$latest_p = new WP_Query( array(
+									'post_type'      => 'product',
+									'post_status'    => 'publish',
+									'posts_per_page' => 1,
+									'no_found_rows'  => true,
+									'tax_query'      => array(
+										array(
+											'taxonomy' => 'product_cat',
+											'field'    => 'term_id',
+											'terms'    => $term->term_id,
+										),
+									),
+								) );
+								if ( $latest_p->have_posts() ) {
+									$latest_p->the_post();
+									$cat_img = get_the_post_thumbnail_url( get_the_ID(), 'medium_large' );
+								}
+								wp_reset_postdata();
+							}
+
+							if ( ! $cat_img ) {
+								$cat_img = get_stylesheet_directory_uri() . '/assets/img/placeholder.svg';
+							}
+						?>
+							<a class="ttw-door-cat-card" href="<?php echo esc_url( $cat_url ); ?>">
+								<div class="ttw-door-cat-media">
+									<img src="<?php echo esc_url( $cat_img ); ?>" alt="<?php echo esc_attr( $term_title ); ?>" loading="lazy">
+									<div class="ttw-door-cat-overlay"></div>
+								</div>
+								<div class="ttw-door-cat-top">
+									<?php if ( $p_count > 0 ) : ?>
+										<span class="ttw-door-cat-badge"><?php echo esc_html( $p_count ); ?> mẫu</span>
+									<?php endif; ?>
+								</div>
+								<div class="ttw-door-cat-bottom">
+									<h3 class="ttw-door-cat-title"><?php echo esc_html( $term_title ); ?></h3>
+									<span class="ttw-door-cat-btn">
+										Khám phá
+										<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+											<path d="M5 12h14" />
+											<path d="M12 5l7 7-7 7" />
+										</svg>
+									</span>
+								</div>
+							</a>
+						<?php
+						endforeach;
+					endif;
 					?>
-						<a class="ttw-showcase-card" href="<?php the_permalink(); ?>">
-							<div class="ttw-showcase-img-wrap">
-								<?php if ($product_img) : ?>
-									<img src="<?php echo esc_url($product_img); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
-								<?php else : ?>
-									<img src="<?php echo esc_url(get_stylesheet_directory_uri() . '/assets/img/placeholder.svg'); ?>" alt="<?php the_title_attribute(); ?>" loading="lazy">
-								<?php endif; ?>
-							</div>
-							<div class="ttw-showcase-overlay"></div>
-							<div class="ttw-showcase-body">
-								<h3 class="ttw-showcase-title"><?php the_title(); ?></h3>
-								<span class="ttw-showcase-btn">
-									Chi tiết
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-										<path d="M5 12h14" />
-										<path d="M12 5l7 7-7 7" />
-									</svg>
-								</span>
-							</div>
-						</a>
-					<?php endwhile; wp_reset_postdata(); ?>
 				</div>
 
 				<div class="ttw-products-action ttw-animate ttw-fade-up">
@@ -3080,25 +3166,13 @@ function ttw_register_shortcodes() {
 					<article class="ttw-card-bento ttw-animate ttw-fade-up">
 						<a class="ttw-card-thumb" href="<?php echo esc_url( $prod_link ); ?>" title="<?php echo esc_attr( $prod_title ); ?>">
 							<img src="<?php echo esc_url( $prod_thumb ); ?>" alt="<?php echo esc_attr( $prod_title ); ?>" loading="lazy" />
-						</a>
-
-						<div class="ttw-card-content">
-							<span class="ttw-card-tag"><?php echo esc_html( $tag ); ?></span>
-							<h3 class="ttw-card-title">
-								<a href="<?php echo esc_url( $prod_link ); ?>"><?php echo esc_html( $prod_title ); ?></a>
-							</h3>
-							<p class="ttw-card-desc"><?php echo esc_html( $prod_excerpt ); ?></p>
-							
-							<div class="ttw-card-footer">
-								<a class="ttw-card-action" href="<?php echo esc_url( $prod_link ); ?>">
-									<span>XEM CHI TIẾT</span>
-									<svg class="ttw-card-arrow" width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-										<path d="M8.3703 6.18749H0V4.81249H8.3703L4.5203 0.962498L5.49999 0L11 5.49999L5.49999 11L4.5203 10.0375L8.3703 6.18749Z" fill="currentColor"/>
-									</svg>
-								</a>
+							<div class="ttw-card-overlay">
+								<div class="ttw-card-meta">
+									<span class="ttw-card-tag"><?php echo esc_html( $tag ); ?></span>
+								</div>
+								<h3 class="ttw-card-title"><?php echo esc_html( $prod_title ); ?></h3>
 							</div>
-						</div>
-
+						</a>
 					</article>
 				<?php endwhile; wp_reset_postdata(); ?>
 			<?php else : ?>
@@ -3350,24 +3424,13 @@ function ttw_register_shortcodes() {
 							<article class="ttw-quote-card ttw-animate ttw-fade-up">
 								<a class="ttw-quote-card-thumb" href="<?php echo esc_url( $qlink ); ?>" title="<?php echo esc_attr( $qtitle ); ?>">
 									<img src="<?php echo esc_url( $qthumb ); ?>" alt="<?php echo esc_attr( $qtitle ); ?>" loading="lazy" />
-								</a>
-
-								<div class="ttw-quote-card-body">
-									<span class="ttw-quote-card-tag"><?php echo esc_html( $tag_badge ); ?></span>
-									<h3 class="ttw-quote-card-title">
-										<a href="<?php echo esc_url( $qlink ); ?>"><?php echo esc_html( $qtitle ); ?></a>
-									</h3>
-									<p class="ttw-quote-card-desc"><?php echo esc_html( $qexcerpt ); ?></p>
-
-									<div class="ttw-quote-card-footer">
-										<a class="ttw-quote-card-btn" href="<?php echo esc_url( $qlink ); ?>">
-											<span>XEM BÁO GIÁ</span>
-											<svg class="ttw-card-arrow" width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-												<path d="M8.3703 6.18749H0V4.81249H8.3703L4.5203 0.962498L5.49999 0L11 5.49999L5.49999 11L4.5203 10.0375L8.3703 6.18749Z" fill="currentColor"/>
-											</svg>
-										</a>
+									<div class="ttw-quote-card-overlay">
+										<div class="ttw-quote-card-meta">
+											<span class="ttw-quote-card-tag"><?php echo esc_html( $tag_badge ); ?></span>
+										</div>
+										<h3 class="ttw-quote-card-title"><?php echo esc_html( $qtitle ); ?></h3>
 									</div>
-								</div>
+								</a>
 							</article>
 						<?php endwhile; wp_reset_postdata(); ?>
 					<?php else : ?>

@@ -366,6 +366,26 @@
 	}
 
 	function initProductCategoryFilter() {
+		// Tự động cuộn tức thì thanh nav danh mục tới đúng tab active (áp dụng cả tải trang sản phẩm, báo giá, tin tức)
+		function scrollActiveTabIntoView() {
+			var activeTabs = document.querySelectorAll('.ttw-category-nav .ttw-category-tab.active, .ttw-news-filter-nav .ttw-news-filter-tab.active, #ttw-project-filter .ttw-project-filter-tab.active');
+			activeTabs.forEach(function (activeTab) {
+				var nav = activeTab.closest('.ttw-category-nav, .ttw-news-filter-nav, #ttw-project-filter');
+				if (nav && activeTab) {
+					var navWidth = nav.clientWidth;
+					var tabOffsetLeft = activeTab.offsetLeft;
+					var tabWidth = activeTab.offsetWidth;
+					var targetScrollLeft = tabOffsetLeft - (navWidth / 2) + (tabWidth / 2);
+					
+					nav.scrollLeft = Math.max(0, targetScrollLeft);
+				}
+			});
+		}
+
+		// Gọi ngay và sau khi render layout xong
+		scrollActiveTabIntoView();
+		setTimeout(scrollActiveTabIntoView, 0);
+
 		var filterNav = document.getElementById('ttw-category-filter');
 		var grid = document.getElementById('ttw-product-grid');
 		var emptyState = document.getElementById('ttw-filter-empty');
@@ -406,6 +426,7 @@
 					t.classList.remove('active');
 				});
 				tab.classList.add('active');
+				scrollActiveTabIntoView();
 				var filterVal = tab.getAttribute('data-filter') || 'all';
 				applyFilter(filterVal);
 			});

@@ -1209,7 +1209,7 @@ body.ttw-menu-open {
 }
 
 body.admin-bar .ttw-products-hero {
-    margin-top: 70px;
+    margin-top: 60px;
 }
 
 .ttw-products-title {
@@ -1316,36 +1316,52 @@ body.admin-bar .ttw-products-hero {
     border-bottom: 2px solid var(--ttw-primary);
 }
 
-/* Tối ưu riêng trên Mobile: Hiển thị ngay hàng nút bo tròn (Pill Badge) dễ chọn giống Báo Giá */
+/* Tối ưu riêng trên Mobile: Hiển thị thanh cuộn ngang (Horizontal Swipe) 1 hàng siêu gọn gàng, không bị chiếm diện tích màn hình */
 @media (max-width: 768px) {
+    .ttw-products-container {
+        padding: 10px clamp(14px, 3.5vw, 24px) 50px;
+        gap: 12px;
+    }
+
     .ttw-category-nav {
         border-bottom: none !important;
-        overflow-x: visible;
-        margin-bottom: 24px;
-        padding-bottom: 0;
-        justify-content: center;
+        overflow-x: auto !important;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 6px;
+        padding-bottom: 4px;
+        scrollbar-width: none; /* Ẩn scrollbar thô */
+    }
+
+    .ttw-category-nav::-webkit-scrollbar {
+        display: none; /* Ẩn scrollbar Chrome/Safari */
     }
 
     .ttw-category-list {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px 10px;
-        white-space: normal;
-        padding-bottom: 0;
-        width: 100%;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap !important;
+        padding: 4px 12px 6px 2px;
+        width: max-content !important;
+        min-width: 100%;
+        box-sizing: border-box;
     }
 
     .ttw-category-tab {
-        font-size: 11px;
-        padding: 7px 14px;
+        font-size: 11.5px;
+        padding: 6px 14px;
         margin-bottom: 0 !important;
         border: 1px solid #E2E8F0 !important;
         border-bottom: 1px solid #E2E8F0 !important;
         background: #F1F5F9;
         color: #334155;
         border-radius: 20px;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.04em;
+        white-space: nowrap !important;
+        flex-shrink: 0;
         transition: all 0.25s ease;
     }
 
@@ -1364,7 +1380,7 @@ body.admin-bar .ttw-products-hero {
         border: 1px solid var(--ttw-primary, #006591) !important;
         border-bottom: 1px solid var(--ttw-primary, #006591) !important;
         font-weight: 700;
-        box-shadow: 0 3px 10px rgba(0, 101, 145, 0.25);
+        box-shadow: 0 2px 8px rgba(0, 101, 145, 0.25);
     }
 }
 
@@ -1376,44 +1392,20 @@ body.admin-bar .ttw-products-hero {
 }
 
 .ttw-card-bento {
-    background: var(--ttw-white);
-    border: 1px solid #E2E8F0;
     border-radius: 8px;
+    border: 1px solid rgba(190, 200, 210, 0.4);
+    background: #0F172A;
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-        border-color 0.4s ease;
-}
-
-/* Thêm dải sáng Shine Light Effect chớp qua hình ảnh khi hover */
-.ttw-card-thumb::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(90deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.3) 50%,
-            rgba(255, 255, 255, 0) 100%);
-    transform: skewX(-25deg);
-    transition: left 0.75s ease;
-    z-index: 2;
-    pointer-events: none;
-}
-
-.ttw-card-bento:hover .ttw-card-thumb::after {
-    left: 140%;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
 }
 
 .ttw-card-bento:hover {
-    transform: translateY(-8px) scale(1.01);
-    box-shadow: 0 20px 40px rgba(0, 101, 145, 0.12), 0 6px 16px rgba(0, 0, 0, 0.05);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px rgba(0, 101, 145, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
     border-color: var(--ttw-primary);
 }
 
@@ -1422,86 +1414,76 @@ body.admin-bar .ttw-products-hero {
     width: 100%;
     aspect-ratio: 3/4;
     overflow: hidden;
-    background: #F8FAFC;
     display: block;
+    background: #1E293B;
 }
 
 .ttw-card-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+    display: block;
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ttw-card-bento:hover .ttw-card-thumb img {
-    transform: scale(1.08);
-    filter: brightness(1.03);
+    transform: scale(1.07);
 }
 
-.ttw-card-content {
-    padding: 24px;
+.ttw-card-overlay {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    background: var(--ttw-white);
+    justify-content: flex-end;
+    padding: 24px 20px;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.4) 28%, rgba(0, 0, 0, 0) 50%);
+    transition: background 0.35s ease;
+    z-index: 2;
+}
+
+.ttw-card-bento:hover .ttw-card-overlay {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 101, 145, 0.5) 35%, rgba(0, 0, 0, 0) 60%);
+}
+
+.ttw-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .ttw-card-tag {
-    display: inline-block;
-    align-self: flex-start;
-    padding: 4px 10px;
-    background: #F1F5F9;
-    color: #475569;
-    font-family: "Inter", sans-serif;
+    background: #006591;
+    color: #FFFFFF !important;
+    font-family: "Montserrat", sans-serif;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
     border-radius: 4px;
-    margin-bottom: 12px;
-    transition: all 0.3s ease;
-}
-
-.ttw-card-bento:hover .ttw-card-tag {
-    background: #E0F2FE;
-    color: var(--ttw-primary);
+    display: inline-flex;
+    align-self: flex-start;
+    line-height: 1.2;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .ttw-card-title {
     font-family: "Montserrat", sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.4;
-    color: #0F172A;
-    margin: 0 0 12px;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.35;
+    color: #FFFFFF !important;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .ttw-card-title a {
-    color: #0F172A;
+    color: #FFFFFF !important;
     text-decoration: none;
-    transition: color 0.25s ease;
-}
-
-.ttw-card-title a:hover,
-.ttw-card-bento:hover .ttw-card-title a {
-    color: var(--ttw-primary);
-}
-
-.ttw-card-desc {
-    font-family: "Inter", sans-serif;
-    font-size: 17px;
-    line-height: 1.6;
-    color: #475569;
-    margin: 0 0 24px;
-}
-
-.ttw-card-footer {
-    margin-top: auto;
-    padding-top: 18px;
-    border-top: 1px solid #E2E8F0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .ttw-card-action {
@@ -1617,16 +1599,17 @@ body.admin-bar .ttw-products-hero {
         gap: 16px;
     }
 
-    .ttw-card-content {
-        padding: 18px;
+    .ttw-card-overlay {
+        padding: 18px 16px;
     }
 
     .ttw-card-title {
-        font-size: 20px;
+        font-size: 16.5px;
     }
 
-    .ttw-category-list {
-        gap: 8px;
+    .ttw-card-tag {
+        font-size: 10px;
+        padding: 4px 10px;
     }
 }
 
@@ -3465,49 +3448,7 @@ body.ux-builder-iframe .ttw-product-detail-page,
 
 /* Hover effects cho Bento Product Cards trong Sản Phẩm Tương Tự */
 .ttw-pd-related-grid .ttw-card-bento {
-    background: var(--ttw-white);
-    border: 1px solid rgba(190, 200, 210, 0.4);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-        border-color 0.4s ease;
-}
-
-.ttw-pd-related-grid .ttw-card-bento:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 32px rgba(0, 101, 145, 0.12);
-    border-color: var(--ttw-primary);
-}
-
-.ttw-pd-related-grid .ttw-card-thumb img {
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.ttw-pd-related-grid .ttw-card-bento:hover .ttw-card-thumb img {
-    transform: scale(1.08);
-}
-
-.ttw-pd-related-grid .ttw-card-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: "Inter", sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ttw-primary);
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.ttw-pd-related-grid .ttw-card-btn svg {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.ttw-pd-related-grid .ttw-card-bento:hover .ttw-card-btn svg {
-    transform: translateX(6px);
+    background: #0F172A;
 }
 
 /* 15.5 Load Animations khi vào trang cho các mục Content */
@@ -3622,17 +3563,16 @@ body.ux-builder-iframe .ttw-product-detail-page,
     min-height: calc(100vh - 200px);
 }
 
-.ttw-news-page {
+.ttw-page-wrapper {
     background-color: var(--ttw-bg-white);
     min-height: calc(100vh - 200px);
     width: 100%;
-    padding-top: 70px;
+    padding-top: 60px;
 }
 
-.ttw-news-container {
+.ttw-page-tin-tuc {
     max-width: var(--ttw-container);
     margin: 0 auto;
-    padding: 0 clamp(16px, 3.5vw, 60px) 80px;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -3641,7 +3581,7 @@ body.ux-builder-iframe .ttw-product-detail-page,
 }
 
 @media (min-width: 1024px) {
-    .ttw-news-container {
+    .ttw-page-tin-tuc {
         padding: 0 clamp(24px, 4vw, 80px) 100px;
         gap: 24px;
     }
@@ -3663,6 +3603,18 @@ body.ux-builder-iframe .ttw-product-detail-page,
 
 body.admin-bar .ttw-news-hero {
     margin-top: 50px;
+}
+
+.ttw-page-tin-tuc .ttw-news-hero {
+    padding-bottom: 32px;
+}
+
+.ttw-page-tin-tuc .ttw-page-inner-container {
+   padding: 30px clamp(16px, 3.5vw, 60px) 80px
+}
+
+.ttw-single-page-wrap {
+    padding: 0 32px;
 }
 
 /* Xử lý tương thích riêng khi đang mở chỉnh sửa trong UX Builder Editor */
@@ -3774,17 +3726,28 @@ body.ux-builder header.ttw-header,
 @media (max-width: 768px) {
     .ttw-news-filter-nav {
         border-bottom: none;
-        overflow-x: visible;
+        overflow-x: auto !important;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
         margin: 12px 0 0;
+        scrollbar-width: none;
+    }
+
+    .ttw-news-filter-nav::-webkit-scrollbar {
+        display: none;
     }
 
     .ttw-news-filter-list {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start;
+        align-items: center;
         gap: 8px;
-        white-space: normal;
-        padding-bottom: 8px;
+        white-space: nowrap !important;
+        padding: 4px 12px 6px 2px;
+        width: max-content !important;
+        min-width: 100%;
+        box-sizing: border-box;
     }
 
     .ttw-news-filter-tab {
@@ -3796,6 +3759,8 @@ body.ux-builder header.ttw-header,
         color: #334155;
         border-radius: 20px;
         border: 1px solid #E2E8F0;
+        white-space: nowrap !important;
+        flex-shrink: 0;
         transition: all 0.2s ease;
     }
 
@@ -3810,6 +3775,10 @@ body.ux-builder header.ttw-header,
         border-color: var(--ttw-primary) !important;
         font-weight: 700;
         box-shadow: 0 2px 8px rgba(0, 101, 145, 0.25);
+    }
+
+    .ttw-single-page-wrap {
+        padding: 0 24px;
     }
 }
 
@@ -4261,6 +4230,10 @@ body.ux-builder header.ttw-header,
 
     .ttw-news-filter-list {
         gap: 8px;
+    }
+
+    .ttw-featured-desc {
+        display: none;
     }
 }
 
@@ -6250,9 +6223,163 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     transform: translateX(4px);
 }
 
+/* ==========================================================================
+   22.1 Danh mục sản phẩm chuyên nghiệp ngành Cửa (Architectural Door Showcase)
+   ========================================================================== */
+.ttw-door-cat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 1200px) {
+    .ttw-door-cat-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+}
+
+.ttw-door-cat-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    aspect-ratio: 3 / 4;
+    height: auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0F172A;
+    border: 1px solid rgba(226, 232, 240, 0.4);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+    text-decoration: none !important;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+}
+
+.ttw-door-cat-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.ttw-door-cat-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    display: block;
+}
+
+.ttw-door-cat-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, transparent 45%, rgba(15, 23, 42, 0.88) 100%);
+    transition: background 0.4s ease;
+}
+
+.ttw-door-cat-card:hover {
+    transform: translateY(-6px);
+    border-color: #006591;
+    box-shadow: 0 16px 36px rgba(0, 101, 145, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ttw-door-cat-card:hover .ttw-door-cat-media img {
+    transform: scale(1.09);
+}
+
+.ttw-door-cat-card:hover .ttw-door-cat-overlay {
+    background: linear-gradient(180deg, rgba(0, 101, 145, 0.2) 0%, transparent 40%, rgba(15, 23, 42, 0.92) 100%);
+}
+
+.ttw-door-cat-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 14px 14px 0;
+}
+
+.ttw-door-cat-badge {
+    font-family: "Montserrat", sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: rgba(15, 23, 42, 0.7);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.ttw-door-cat-card:hover .ttw-door-cat-badge {
+    background: var(--ttw-primary, #006591);
+    border-color: var(--ttw-primary, #006591);
+}
+
+.ttw-door-cat-bottom {
+    position: relative;
+    z-index: 2;
+    margin-top: auto;
+    padding: 16px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ttw-door-cat-title {
+    font-family: "Montserrat", sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #FFFFFF !important;
+    margin: 0 !important;
+    line-height: 1.35 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ttw-door-cat-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Montserrat", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #7dd3fc;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 4px;
+    transition: all 0.3s ease;
+}
+
+.ttw-door-cat-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.ttw-door-cat-card:hover .ttw-door-cat-btn {
+    color: #FFFFFF;
+}
+
+.ttw-door-cat-card:hover .ttw-door-cat-btn svg {
+    transform: translateX(4px);
+}
+
 
 /* Homepage responsive - Đặt sau CSS base để luôn ghi đè chính xác trên Tablet & Mobile */
 @media (max-width: 1024px) {
+    .ttw-cat-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
     .ttw-showcase {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -6265,6 +6392,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     .ttw-projects {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
+        gap: 12px;
     }
 
     .ttw-project-large {
@@ -6272,9 +6400,29 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     }
 
     .ttw-project,
+    .ttw-project-large,
     .ttw-project-small {
         aspect-ratio: 16 / 10;
         height: auto;
+        border-radius: 12px;
+    }
+
+    .ttw-project-body {
+        padding: 20px 24px;
+    }
+
+    .ttw-project-cat {
+        font-size: 13px;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+
+    .ttw-project-body h3,
+    .ttw-project-small .ttw-project-body h3 {
+        font-size: 19px;
+        line-height: 1.35;
+        letter-spacing: 0.6px;
+        margin: 0;
     }
 
     .ttw-process {
@@ -6312,8 +6460,16 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
         display: none !important;
     }
 
+    .ttw-hero p {
+        font-size: 16px !important;
+        line-height: 1.6 !important;
+        margin-bottom: 24px !important;
+    }
+
     .ttw-stats {
         padding: 0;
+        background: var(--ttw-white);
+        border-bottom: 1px solid var(--ttw-gray-light);
     }
 
     .ttw-stats-grid {
@@ -6324,10 +6480,14 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     }
 
     .ttw-stat {
-        padding: 24px 12px;
+        padding: 20px 10px;
         position: relative;
         text-align: center;
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .ttw-stat:nth-child(1),
@@ -6344,16 +6504,31 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
     }
 
     .ttw-stat-number {
-        font-size: 30px;
+        font-family: "Montserrat", sans-serif;
+        font-size: 24px;
         font-weight: 700;
+        color: var(--ttw-primary);
+        line-height: 1.2;
         margin-bottom: 6px;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+    }
+
+    .ttw-stat-number .ttw-count-suffix {
+        font-size: 24px;
     }
 
     .ttw-stat-label {
-        font-size: 11.5px;
-        letter-spacing: 0.8px;
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
         color: #64748b;
-        margin-top: 4px;
+        margin-top: 2px;
+        line-height: 1.35;
+        max-width: 130px;
     }
 
     .ttw-products-header {
@@ -6433,6 +6608,38 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
         margin-bottom: 8px;
     }
 
+    .ttw-door-cat-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .ttw-door-cat-card {
+        aspect-ratio: 3 / 4;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .ttw-door-cat-top {
+        padding: 10px 10px 0;
+    }
+
+    .ttw-door-cat-badge {
+        font-size: 9.5px;
+        padding: 2px 6px;
+    }
+
+    .ttw-door-cat-bottom {
+        padding: 12px 10px 10px;
+    }
+
+    .ttw-door-cat-title {
+        font-size: 13.5px !important;
+    }
+
+    .ttw-door-cat-btn {
+        font-size: 10.5px;
+    }
+
     .ttw-showcase {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
@@ -6454,6 +6661,39 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
 
     .ttw-showcase-overlay {
         background: linear-gradient(180deg, rgba(0, 0, 0, 0) 65%, rgba(0, 0, 0, 0.5) 100%);
+    }
+
+    .ttw-projects {
+        gap: 10px;
+    }
+
+    .ttw-project,
+    .ttw-project-large,
+    .ttw-project-small {
+        aspect-ratio: 16 / 11;
+        border-radius: 10px;
+    }
+
+    .ttw-project-body {
+        padding: 14px 16px;
+    }
+
+    .ttw-project-overlay {
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.75) 100%) !important;
+    }
+
+    .ttw-project-cat {
+        font-size: 11px;
+        letter-spacing: 0.8px;
+        margin-bottom: 4px;
+    }
+
+    .ttw-project-body h3,
+    .ttw-project-small .ttw-project-body h3 {
+        font-size: 15px;
+        line-height: 1.35;
+        letter-spacing: 0.4px;
+        margin: 0;
     }
 
     .ttw-showcase-body {
@@ -7029,6 +7269,10 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
 /* ==========================================================================
    24. Page Giới Thiệu (About Us - Figma)
    ========================================================================== */
+.ttw-page-gioi-thieu-ve-tan-tien-window .container {
+    padding: 0 clamp(24px, 4vw, 80px);
+}
+
 .ttw-about-page {
     background-color: var(--ttw-bg-white);
     color: #1A1C1C;
@@ -7576,76 +7820,294 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
     box-shadow: 0 6px 20px rgba(0, 101, 145, 0.35);
 }
 
-/* Responsive Styles */
+/* Responsive Styles cho Trang Giới Thiệu */
 @media (max-width: 1024px) {
-    .ttw-about-split-grid {
+    .ttw-about-hero {
+        aspect-ratio: auto;
+        min-height: 380px;
+        padding: 90px 24px 50px;
+    }
+
+    .ttw-about-hero-card {
+        padding: 40px 36px;
+        max-width: 780px;
+    }
+
+    .ttw-about-hero-title {
+        font-size: 38px;
+    }
+
+    .ttw-about-intro-grid {
+        gap: 36px;
+    }
+
+    .ttw-about-split-grid,
+    .ttw-about-split-grid.ttw-split-reverse {
         gap: 36px;
     }
 
     .ttw-about-process-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .ttw-about-section {
+        padding: 60px 0;
     }
 }
 
 @media (max-width: 768px) {
+    .ttw-about-hero {
+        aspect-ratio: auto;
+        min-height: 320px;
+        padding: 80px 16px 40px !important;
+    }
+
+    .ttw-about-hero-card {
+        padding: 28px 20px;
+        border-radius: 12px;
+    }
+
+    .ttw-about-hero-title {
+        font-size: 26px;
+        line-height: 1.25;
+        margin-bottom: 10px;
+    }
+
+    .ttw-about-hero-subtitle {
+        font-size: 15px;
+        line-height: 1.55;
+    }
+
+    .ttw-about-main {
+        padding: 40px 0 60px 0;
+    }
+
     .ttw-about-section {
-        padding: 48px 0;
+        padding: 44px 0;
     }
 
-    .ttw-about-split-grid,
-    .ttw-about-split-grid.ttw-split-reverse {
-        grid-template-columns: 1fr;
-        gap: 28px;
-    }
-
-    .ttw-about-split-grid.ttw-split-reverse .ttw-about-split-media {
-        order: -1;
+    .ttw-about-section-header {
+        margin-bottom: 32px;
     }
 
     .ttw-about-section-title {
         font-size: 24px;
+        line-height: 1.3;
+        margin-bottom: 12px;
     }
 
-    .ttw-about-process-grid {
+    .ttw-about-section-subtitle {
+        font-size: 14.5px;
+    }
+
+    /* Intro Grid 1 Cột */
+    .ttw-about-intro-grid {
         grid-template-columns: 1fr;
+        gap: 28px;
     }
 
-    .ttw-about-values-list {
-        grid-template-columns: 1fr;
+    .ttw-about-intro-title {
+        font-size: 24px;
     }
 
-    .ttw-about-cta-card {
-        padding: 28px 16px;
+    .ttw-about-intro-desc p {
+        font-size: 15px;
     }
 
-    .ttw-about-cta-title {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .ttw-about-hero {
-        min-height: 280px;
-        padding: 76px 12px 28px !important;
+    .ttw-about-intro-stats {
+        flex-wrap: wrap;
+        gap: 16px;
     }
 
-    .ttw-about-hero-card {
-        padding: 18px 12px;
-    }
-
-    .ttw-about-hero-title {
-        font-size: 19px;
-    }
-
-    .ttw-about-hero-subtitle {
-        font-size: 13px;
+    .ttw-about-intro-stat {
+        flex: 1 1 calc(50% - 16px);
+        min-width: 130px;
     }
 
     .ttw-about-intro-stat+.ttw-about-intro-stat {
         border-left: none;
-        border-top: 1px solid #BEC8D2;
         padding-left: 0;
-        padding-top: 12px;
+    }
+
+    .ttw-about-stat-num {
+        font-size: 24px;
+    }
+
+    /* Split Grids (Vật tư, Dự án thực tế, Xưởng) 1 Cột */
+    .ttw-about-split-grid,
+    .ttw-about-split-grid.ttw-split-reverse {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .ttw-about-split-grid.ttw-split-reverse .ttw-about-split-media,
+    .ttw-about-split-grid .ttw-about-split-media {
+        order: -1;
+    }
+
+    .ttw-split-media-wrapper,
+    .ttw-about-split-media img {
+        aspect-ratio: 16 / 10;
+    }
+
+    /* Process Grid 1 Cột */
+    .ttw-about-process-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .ttw-about-process-card {
+        padding: 20px 18px;
+    }
+
+    .ttw-about-process-step {
+        font-size: 24px;
+    }
+
+    /* Values List 1 Cột trên Mobile */
+    .ttw-about-values-list {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .ttw-val-item {
+        padding: 16px;
+    }
+
+    /* Feature Cards */
+    .ttw-feature-card {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+
+    .ttw-feature-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* CTA Card */
+    .ttw-about-cta-section {
+        padding: 20px 0 50px 0;
+    }
+
+    .ttw-about-cta-card {
+        padding: 32px 18px;
+        border-radius: 12px;
+    }
+
+    .ttw-about-cta-title {
+        font-size: 20px;
+        line-height: 1.3;
+    }
+
+    .ttw-about-cta-desc {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .ttw-about-cta-btn {
+        width: 100%;
+        max-width: 280px;
+        padding: 13px 24px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 480px) {
+    .ttw-news-page {
+        padding-top: 60px;
+    }
+
+    .ttw-hero h1 {
+        font-size: 30px !important;
+        line-height: 1.25 !important;
+        margin-bottom: 12px !important;
+    }
+
+    .ttw-hero p {
+        font-size: 14px !important;
+        line-height: 1.55 !important;
+        margin-bottom: 20px !important;
+    }
+
+    .ttw-hero-content {
+        padding: 0 16px !important;
+    }
+
+    .ttw-about-section.ttw-bg-light {
+        background-color: unset;
+    }
+
+    .ttw-about-hero {
+        min-height: 400px;
+        padding: 68px 12px 28px !important;
+    }
+
+    .ttw-about-main {
+        padding-top: 16px;
+    }
+
+    .ttw-about-hero-card {
+        padding: 20px 14px;
+    }
+
+    .ttw-about-hero-title {
+        font-size: 21px;
+        letter-spacing: 0.02em;
+    }
+
+    .ttw-about-hero-subtitle {
+        font-size: 13.5px;
+    }
+
+    .ttw-about-section {
+        padding: 36px 0;
+    }
+
+    .ttw-about-section-title,
+    .ttw-about-intro-title {
+        font-size: 20px;
+    }
+
+    .ttw-about-badge {
+        font-size: 10.5px;
+        padding: 4px 10px;
+    }
+
+    .ttw-about-intro-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding-top: 14px;
+    }
+
+    .ttw-about-intro-stat {
+        min-width: unset;
+        flex: unset;
+    }
+
+    .ttw-about-stat-num {
+        font-size: 22px;
+    }
+
+    .ttw-about-stat-label {
+        font-size: 11px;
+    }
+
+    .ttw-split-media-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+        bottom: 10px;
+        left: 10px;
+    }
+
+    .ttw-about-cta-card {
+        padding: 24px 14px;
+    }
+
+    .ttw-about-cta-title {
+        font-size: 18px;
     }
 }
 
@@ -8020,23 +8482,23 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     margin-bottom: 36px;
 }
 
-/* 17.5 Bento Card Component */
+/* 17.5 Bento Card Component - Modern Overlay Style */
 .ttw-quote-page .ttw-quote-card {
+    border-radius: 8px;
+    border: 1px solid rgba(190, 200, 210, 0.4);
+    background: #0F172A;
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    background: #FFFFFF;
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid #EAEFEF;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
-    position: relative;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
 }
 
 .ttw-quote-page .ttw-quote-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 16px 36px rgba(0, 101, 145, 0.12);
-    border-color: rgba(0, 101, 145, 0.25);
+    box-shadow: 0 16px 36px rgba(0, 101, 145, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--ttw-primary);
 }
 
 .ttw-quote-page .ttw-quote-card-thumb {
@@ -8044,7 +8506,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     width: 100%;
     aspect-ratio: 16 / 10;
     overflow: hidden;
-    background-color: #F1F5F9;
+    background-color: #1E293B;
     display: block;
     text-decoration: none;
 }
@@ -8054,121 +8516,67 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ttw-quote-page .ttw-quote-card:hover .ttw-quote-card-thumb img {
-    transform: scale(1.06);
+    transform: scale(1.07);
 }
 
-.ttw-quote-page .ttw-quote-card-thumb::after {
-    content: '';
+.ttw-quote-page .ttw-quote-card-overlay {
     position: absolute;
-    top: 0;
-    left: -100%;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transform: skewX(-25deg);
-    transition: left 0.75s ease;
-    pointer-events: none;
-}
-
-.ttw-quote-page .ttw-quote-card:hover .ttw-quote-card-thumb::after {
-    left: 150%;
-}
-
-.ttw-quote-page .ttw-quote-card-body {
-    padding: 24px;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    justify-content: flex-end;
+    padding: 24px 20px;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.4) 28%, rgba(0, 0, 0, 0) 50%);
+    transition: background 0.35s ease;
+    z-index: 2;
+}
+
+.ttw-quote-page .ttw-quote-card:hover .ttw-quote-card-overlay {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 101, 145, 0.5) 35%, rgba(0, 0, 0, 0) 60%);
+}
+
+.ttw-quote-page .ttw-quote-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .ttw-quote-page .ttw-quote-card-tag {
-    display: inline-block;
-    align-self: flex-start;
+    background: #006591;
+    color: #FFFFFF !important;
     font-family: "Montserrat", sans-serif;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--ttw-primary, #006591);
-    background-color: rgba(0, 101, 145, 0.08);
-    padding: 6px 14px;
-    border-radius: 20px;
-    margin-bottom: 14px;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-self: flex-start;
+    line-height: 1.2;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .ttw-quote-page .ttw-quote-card-title {
     font-family: "Montserrat", sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1.4;
-    letter-spacing: 0.01em;
-    margin: 0 0 12px;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.35;
+    color: #FFFFFF !important;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .ttw-quote-page .ttw-quote-card-title a {
-    color: #1A1C1C;
+    color: #FFFFFF !important;
     text-decoration: none !important;
-    transition: color 0.25s ease;
-}
-
-.ttw-quote-page .ttw-quote-card:hover .ttw-quote-card-title a {
-    color: var(--ttw-primary, #006591);
-}
-
-.ttw-quote-page .ttw-quote-card-desc {
-    font-family: "Inter", sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.6;
-    color: #585F6A;
-    margin: 0 0 20px;
-    flex-grow: 1;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.ttw-quote-page .ttw-quote-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid #F1F5F9;
-}
-
-.ttw-quote-page .ttw-quote-card-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: "Montserrat", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ttw-primary, #006591);
-    text-decoration: none !important;
-    transition: gap 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s ease;
-}
-
-.ttw-quote-page .ttw-quote-card-btn svg {
-    width: 10px;
-    height: 10px;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.ttw-quote-page .ttw-quote-card:hover .ttw-quote-card-btn {
-    gap: 12px;
-}
-
-.ttw-quote-page .ttw-quote-card:hover .ttw-quote-card-btn svg {
-    transform: translateX(4px);
 }
 
 .ttw-quote-page .ttw-quote-empty {
@@ -8279,29 +8687,25 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 
     .ttw-quote-page .ttw-quote-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
     }
 
     .ttw-quote-page .ttw-quote-card {
-        border-radius: 12px;
+        border-radius: 8px;
     }
 
-    .ttw-quote-page .ttw-quote-card-body {
-        padding: 18px;
+    .ttw-quote-page .ttw-quote-card-overlay {
+        padding: 18px 16px;
     }
 
     .ttw-quote-page .ttw-quote-card-title {
-        font-size: 16px;
-        margin-bottom: 8px;
+        font-size: 16.5px;
+        margin: 0;
     }
 
-    .ttw-quote-page .ttw-quote-card-desc {
-        font-size: 13px;
-        margin-bottom: 16px;
-    }
-
-    .ttw-quote-page .ttw-quote-card-footer {
-        padding-top: 12px;
+    .ttw-quote-page .ttw-quote-card-tag {
+        font-size: 10px;
+        padding: 4px 10px;
     }
 }
 
@@ -9063,16 +9467,16 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 
 /* 26.8 Section 6: Contact Band Card */
 .ttw-culture-contact-band {
-    background: linear-gradient(135deg, #006591 0%, #004563 100%);
+    background: #244C6A;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 16px 48px rgba(0, 101, 145, 0.25);
+    box-shadow: 0 16px 48px rgba(15, 23, 42, 0.2);
     color: #FFFFFF;
 }
 
 .ttw-contact-band-inner {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
+    grid-template-columns: 1.45fr 1fr;
 }
 
 .ttw-contact-text-col {
@@ -9084,9 +9488,9 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 
 .ttw-contact-badge {
     align-self: flex-start;
-    padding: 5px 14px;
+    padding: 6px 16px;
     background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 9999px;
     font-family: "Inter", sans-serif;
     font-size: 11px;
@@ -9103,6 +9507,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     color: #FFFFFF;
     margin: 0;
     line-height: 1.35;
+    text-transform: uppercase;
 }
 
 .ttw-contact-sub-p {
@@ -9117,65 +9522,80 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .ttw-contact-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 14px !important;
     font-family: "Inter", sans-serif;
     font-size: 14.5px;
     color: #FFFFFF;
 }
 
-.ttw-meta-icon {
+.ttw-contact-meta-item br {
+    display: none !important;
+}
+
+/* Tự động render khung icon bo góc tròn khi có hoặc không có thẻ .ttw-meta-icon */
+.ttw-contact-meta-item::before {
+    content: '';
     width: 34px;
     height: 34px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: #7DD3FC;
-    transition: all 0.25s ease;
     background-repeat: no-repeat;
     background-position: center;
     background-size: 18px 18px;
+    transition: all 0.25s ease;
 }
 
-/* Icon nhúng CSS trực tiếp đảm bảo không bao giờ bị mất hoặc vỡ */
-.ttw-contact-meta-item:nth-child(1) .ttw-meta-icon {
+.ttw-contact-meta-item:nth-child(1)::before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237DD3FC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
-.ttw-contact-meta-item:nth-child(2) .ttw-meta-icon {
+.ttw-contact-meta-item:nth-child(2)::before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237DD3FC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'%3E%3C/path%3E%3Cpolyline points='22,6 12,13 2,6'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
-.ttw-contact-meta-item:nth-child(3) .ttw-meta-icon {
+.ttw-contact-meta-item:nth-child(3)::before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237DD3FC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='2' y1='12' x2='22' y2='12'%3E%3C/line%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'%3E%3C/path%3E%3C/svg%3E");
 }
 
-.ttw-contact-meta-item:hover .ttw-meta-icon {
+.ttw-contact-meta-item:hover::before {
     background-color: #00A6EB;
     border-color: #00A6EB;
     transform: scale(1.08);
 }
 
+.ttw-meta-icon {
+    display: none !important;
+}
+
 .ttw-meta-text {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 6px;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    line-height: 1.5 !important;
+}
+
+.ttw-meta-text br {
+    display: none !important;
 }
 
 .ttw-contact-meta-item strong {
     font-weight: 700;
     color: #7DD3FC;
+    margin-right: 2px;
 }
 
 .ttw-contact-meta-item span {
@@ -9195,8 +9615,8 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 .ttw-contact-action-col {
-    background: rgba(0, 0, 0, 0.12);
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    background: #1C3C54;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -9292,10 +9712,16 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 
 .ttw-culture-contact-band .ttw-cta-social-group {
     display: flex !important;
-    flex-direction: row;
-    gap: 10px;
-    width: 100%;
-    margin-top: 8px;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+}
+
+.ttw-culture-contact-band .ttw-cta-social-group br {
+    display: none !important;
 }
 
 /* 1. Nếu wpautop sinh ra cấu trúc bọc <p>, xử lý <p> thành flex item chuẩn */
@@ -9307,36 +9733,30 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     min-width: 0;
 }
 
-/* 2. ẨN TRIỆT ĐỂ mọi thẻ a rỗng (không chứa chữ/span hoặc bị tách) trong group */
-.ttw-culture-contact-band .ttw-cta-social-group > a:empty,
-.ttw-culture-contact-band .ttw-cta-social-group > a:not(:has(span)),
-.ttw-culture-contact-band .ttw-cta-social-group:has(> p) > a {
-    display: none !important;
-}
-
-/* 3. Style nút mạng xã hội (cả khi là con trực tiếp hoặc con trong thẻ p) */
+/* 2. Style nút mạng xã hội (cả khi là con trực tiếp hoặc con trong thẻ p) */
 .ttw-culture-contact-band .ttw-social-btn,
+.ttw-culture-contact-band .ttw-cta-social-group a.ttw-social-btn,
 .ttw-culture-contact-band .ttw-cta-social-group > p > a {
     flex: 1 1 0 !important;
     width: 100%;
     min-width: 0;
     display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 11px 16px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 11px 16px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
     color: #FFFFFF !important;
-    font-family: "Montserrat", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
+    font-family: "Montserrat", sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
     letter-spacing: 0.03em;
     text-decoration: none !important;
-    border-radius: 8px;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    white-space: nowrap;
-    box-sizing: border-box;
+    border-radius: 8px !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
 }
 
 .ttw-culture-contact-band .ttw-social-btn span,
@@ -9367,10 +9787,11 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 .ttw-culture-contact-band .ttw-social-btn:hover,
+.ttw-culture-contact-band .ttw-cta-social-group a.ttw-social-btn:hover,
 .ttw-culture-contact-band .ttw-cta-social-group > p > a:hover {
-    background: #FFFFFF;
+    background: #FFFFFF !important;
     color: #006591 !important;
-    border-color: #FFFFFF;
+    border-color: #FFFFFF !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
@@ -9433,8 +9854,14 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     transform: translateX(4px);
 }
 
-/* 26.9 Responsive Media Queries */
+/* 26.9 Responsive Media Queries cho Bản Sắc Văn Hóa */
 @media (max-width: 1024px) {
+    .ttw-culture-container {
+        padding-left: clamp(24px, 5vw, 60px);
+        padding-right: clamp(24px, 5vw, 60px);
+        gap: 32px;
+    }
+
     .ttw-history-top-grid {
         grid-template-columns: 1fr;
         gap: 32px;
@@ -9476,18 +9903,78 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 @media (max-width: 768px) {
+    .ttw-culture-hero {
+        padding: 90px 16px 65px;
+        min-height: 280px;
+    }
+
+    .ttw-culture-tag {
+        font-size: 10.5px;
+        padding: 6px 16px;
+        margin-bottom: 14px;
+    }
+
+    .ttw-culture-hero-title {
+        font-size: 24px;
+        line-height: 1.3;
+        margin-bottom: 10px;
+    }
+
+    .ttw-culture-hero-desc {
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    .ttw-culture-container {
+        margin-top: -30px;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        gap: 20px;
+    }
+
     .ttw-culture-card {
-        padding: 36px 20px;
-        border-radius: 16px;
+        padding: 28px 18px;
+        border-radius: 14px;
+    }
+
+    .ttw-culture-sec-tag {
+        font-size: 10.5px;
+        padding: 4px 12px;
+    }
+
+    .ttw-culture-sec-title {
+        font-size: 20px;
+        line-height: 1.3;
+        margin-bottom: 12px;
+    }
+
+    .ttw-culture-sec-desc {
+        font-size: 14.5px;
+        line-height: 1.6;
+        margin-top: 12px;
     }
 
     .ttw-history-top-grid {
         gap: 24px;
-        margin-bottom: 28px;
+        margin-bottom: 24px;
+    }
+
+    .ttw-history-lead-p {
+        font-size: 14.5px;
+        line-height: 1.7;
+    }
+
+    .ttw-history-mission-card {
+        padding: 16px 18px;
+    }
+
+    .ttw-mission-content p {
+        font-size: 14px;
     }
 
     .ttw-history-focus-wrap {
         padding: 24px 16px;
+        border-radius: 14px;
     }
 
     .ttw-history-summary-box {
@@ -9498,26 +9985,95 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 
     .ttw-culture-core-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .ttw-feature-row {
+        padding: 20px 18px;
+        border-radius: 12px;
+    }
+
+    .ttw-feature-header-badge h3 {
+        font-size: 16px;
     }
 
     .ttw-feature-subcards-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .ttw-feature-subcard {
+        padding: 14px 16px;
+    }
+
+    .ttw-feature-subcard p {
+        font-size: 14px;
     }
 
     .ttw-foundation-pillars-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .ttw-culture-products-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .ttw-contact-text-col {
-        padding: 36px 20px;
+        padding: 28px 18px;
     }
 
     .ttw-contact-action-col {
-        padding: 36px 20px;
+        padding: 28px 18px;
+    }
+
+    .ttw-contact-main-title {
+        font-size: 19px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ttw-culture-hero {
+        padding: 75px 12px 55px;
+        min-height: 240px;
+    }
+
+    .ttw-culture-hero-title {
+        font-size: 20px;
+    }
+
+    .ttw-culture-hero-desc {
+        font-size: 13px;
+    }
+
+    .ttw-culture-container {
+        margin-top: -20px;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        gap: 16px;
+    }
+
+    .ttw-culture-card {
+        padding: 22px 14px;
+        border-radius: 12px;
+    }
+
+    .ttw-culture-sec-title {
+        font-size: 18px;
+    }
+
+    .ttw-history-focus-wrap {
+        padding: 18px 12px;
+    }
+
+    .ttw-feature-row {
+        padding: 16px 14px;
+    }
+
+    .ttw-contact-text-col,
+    .ttw-contact-action-col {
+        padding: 22px 14px;
     }
 }
 
@@ -9773,19 +10329,22 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     transform: translateY(-2px);
 }
 
-/* 27.5 Table Bento */
+/* 27.5 Table Bento - Bảng chuẩn hiển thị đẹp mắt, cuộn ngang mượt mà trên Mobile */
 .ttw-table-responsive {
     overflow-x: auto;
-    border-radius: 14px;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
     border: 1px solid #E2E8F0;
     margin-bottom: 24px;
+    background: #FFFFFF;
 }
 
 .ttw-warranty-table {
     width: 100%;
+    min-width: 580px;
     border-collapse: collapse;
     font-family: "Inter", sans-serif;
-    font-size: 14.5px;
+    font-size: 14px;
     text-align: left;
 }
 
@@ -9793,19 +10352,24 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     background: #F8FAFC;
     color: #0F172A;
     font-family: "Montserrat", sans-serif;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    padding: 16px 20px;
+    padding: 14px 16px;
     border-bottom: 2px solid #E2E8F0;
+    white-space: nowrap;
 }
 
 .ttw-warranty-table tbody td {
-    padding: 18px 20px;
+    padding: 14px 16px;
     border-bottom: 1px solid #F1F5F9;
     color: #334155;
     vertical-align: middle;
+}
+
+.ttw-warranty-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
 .ttw-warranty-table tbody tr:hover td {
@@ -9815,12 +10379,14 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 .ttw-tbl-prod {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    font-weight: 600;
+    color: #0F172A;
 }
 
 .ttw-tbl-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: #006591;
     flex-shrink: 0;
@@ -9828,12 +10394,12 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 
 .ttw-time-badge {
     display: inline-block;
-    padding: 6px 14px;
-    border-radius: 9999px;
+    padding: 5px 12px;
+    border-radius: 6px;
     font-family: "Montserrat", sans-serif;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     white-space: nowrap;
 }
 
@@ -9855,56 +10421,13 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     border: 1px solid #E2E8F0;
 }
 
-/* Giao diện Mobile Cards cho Bảng bảo hành */
 .ttw-warranty-mobile-cards {
-    display: none;
-    flex-direction: column;
-    gap: 14px;
-    margin-bottom: 24px;
-}
-
-.ttw-wmobile-item {
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 14px;
-    padding: 16px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.ttw-wmobile-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.ttw-wmobile-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: "Montserrat", sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: #0F172A;
-}
-
-.ttw-wmobile-desc {
-    font-family: "Inter", sans-serif;
-    font-size: 13.5px;
-    line-height: 1.55;
-    color: #64748B;
-    margin: 0;
+    display: none !important;
 }
 
 @media (max-width: 768px) {
     .ttw-table-desktop-wrap {
-        display: none !important;
-    }
-
-    .ttw-warranty-mobile-cards {
-        display: flex !important;
+        display: block !important;
     }
 }
 
@@ -9982,13 +10505,16 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     margin: 0;
 }
 
-/* 27.7 Duty Boxes */
+/* 27.7 Duty Boxes - Modern Clean Style */
 .ttw-duty-box {
-    background: #F8FAFC;
+    background: #FFFFFF;
     border: 1px solid #E2E8F0;
-    border-radius: 14px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 16px 18px;
     margin-bottom: 16px;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    border-left: 4px solid #64748B;
 }
 
 .ttw-duty-box:last-child {
@@ -9998,33 +10524,58 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 .ttw-duty-box.ttw-brand-box {
     background: #F0F9FF;
     border-color: #BAE6FD;
+    border-left: 4px solid #006591;
 }
 
 .ttw-duty-title {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
     margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ttw-brand-box .ttw-duty-title {
+    border-bottom-color: #E0F2FE;
+}
+
+.ttw-duty-title strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.4;
+    order: 1;
+    flex: 1;
 }
 
 .ttw-duty-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-family: "Montserrat", sans-serif;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 3px 10px;
-    border-radius: 6px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    order: 2;
+    line-height: 1.2;
 }
 
 .ttw-duty-pill.customer {
-    background: #E2E8F0;
-    color: #334155;
+    background: #F1F5F9;
+    color: #475569;
+    border: 1px solid #CBD5E1;
 }
 
 .ttw-duty-pill.ttw {
-    background: #006591;
-    color: #FFFFFF;
+    background: #E0F2FE;
+    color: #0369A1;
+    border: 1px solid #BAE6FD;
 }
 
 .ttw-duty-list {
@@ -10113,20 +10664,192 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     margin: 0;
 }
 
-/* 27.10 Responsive Warranty */
+/* 27.10 Responsive Warranty Policy */
 @media (max-width: 1024px) {
+    .ttw-warranty-container {
+        padding-left: clamp(24px, 5vw, 60px);
+        padding-right: clamp(24px, 5vw, 60px);
+        gap: 28px;
+    }
+
     .ttw-warranty-grid-2col {
         grid-template-columns: 1fr;
+        gap: 24px;
     }
 }
 
 @media (max-width: 768px) {
+    .ttw-warranty-page {
+        padding-bottom: 60px;
+    }
+
+    .ttw-warranty-hero {
+        padding: 90px 16px 65px;
+        min-height: 280px;
+    }
+
+    .ttw-warranty-badge {
+        font-size: 10.5px;
+        padding: 6px 16px;
+        margin-bottom: 14px;
+    }
+
+    .ttw-warranty-hero-title {
+        font-size: 24px;
+        line-height: 1.3;
+        margin-bottom: 10px;
+    }
+
+    .ttw-warranty-hero-subtitle {
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    .ttw-warranty-container {
+        margin-top: -30px;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        gap: 20px;
+    }
+
     .ttw-wcard {
-        padding: 28px 18px;
+        padding: 24px 16px;
+        border-radius: 14px;
+    }
+
+    .ttw-wcard-head {
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .ttw-wcard-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        font-size: 18px;
+    }
+
+    .ttw-wcard-step {
+        font-size: 10px;
+    }
+
+    .ttw-wcard-title {
+        font-size: 17px;
+    }
+
+    .ttw-wcard-lead {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+
+    .ttw-wcard-list li {
+        font-size: 14px;
+        gap: 10px;
+    }
+
+    .ttw-check-pill {
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+    }
+
+    .ttw-scope-tags {
+        gap: 8px;
+    }
+
+    .ttw-tag-item {
+        font-size: 12.5px;
+        padding: 7px 12px;
     }
 
     .ttw-guide-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .ttw-duty-box {
+        padding: 16px 14px;
+    }
+
+    .ttw-duty-title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .ttw-duty-title strong {
+        font-size: 14.5px;
+        line-height: 1.35;
+    }
+
+    .ttw-duty-pill {
+        font-size: 9.5px;
+        padding: 2.5px 7px;
+    }
+
+    .ttw-duty-list {
+        font-size: 13.5px;
+        padding-left: 18px;
+    }
+
+    .ttw-exclude-list li {
+        font-size: 13.5px;
+        gap: 10px;
+    }
+
+    .ttw-cross-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+
+    .ttw-verify-item {
+        padding: 14px;
+        gap: 12px;
+    }
+
+    .ttw-vicon {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ttw-warranty-hero {
+        padding: 75px 12px 55px;
+        min-height: 240px;
+    }
+
+    .ttw-warranty-hero-title {
+        font-size: 20px;
+    }
+
+    .ttw-warranty-hero-subtitle {
+        font-size: 13px;
+    }
+
+    .ttw-warranty-container {
+        margin-top: -20px;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        gap: 16px;
+    }
+
+    .ttw-wcard {
+        padding: 20px 14px;
+        border-radius: 12px;
+    }
+
+    .ttw-wcard-title {
+        font-size: 16px;
+    }
+
+    .ttw-wcard-note {
+        padding: 12px 14px;
+        font-size: 13px;
     }
 }
 
@@ -10190,6 +10913,11 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 @media (max-width: 1024px) {
+    .uxb-content .ttw-warranty-container,
+    .ux-builder-active .ttw-warranty-container {
+        padding-left: clamp(24px, 5vw, 60px) !important;
+        padding-right: clamp(24px, 5vw, 60px) !important;
+    }
 
     .ttw-warranty-grid-2col,
     .uxb-content .ttw-warranty-grid-2col,
@@ -10203,6 +10931,14 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     .ux-builder-active .ttw-warranty-grid-2col>.ttw-wcard,
     .ttw-warranty-page .ttw-warranty-grid-2col>.ttw-wcard {
         flex: 1 1 100% !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .uxb-content .ttw-warranty-container,
+    .ux-builder-active .ttw-warranty-container {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
     }
 }
 
@@ -10622,9 +11358,14 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 /* Responsive */
-@media (max-width: 991px) {
+@media (max-width: 1024px) {
+    .ttw-contact-page {
+        padding: 80px 0 60px;
+    }
+
     .ttw-contact-page .ttw-contact-layout {
         grid-template-columns: 1fr;
+        gap: 32px;
     }
 
     .ttw-contact-page .ttw-contact-info-col {
@@ -10636,18 +11377,103 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+    .ttw-contact-page {
+        padding: 40px 0 50px;
+    }
+
+    .ttw-contact-page .ttw-contact-container {
+        padding: 0 16px;
+    }
+
+    .ttw-contact-page .ttw-contact-hero {
+        margin-bottom: 32px;
+    }
+
+    .ttw-contact-page .ttw-contact-title {
+        font-size: 24px;
+        line-height: 1.3;
+        margin-bottom: 12px;
+    }
+
+    .ttw-contact-page .ttw-contact-subtitle {
+        font-size: 14.5px;
+        line-height: 1.6;
+    }
+
+    .ttw-contact-page .ttw-form-wrapper {
+        padding: 24px 18px;
+        border-radius: 14px;
+    }
+
+    .ttw-contact-page .ttw-form-header {
+        margin-bottom: 22px;
+    }
+
+    .ttw-contact-page .ttw-form-header h2 {
+        font-size: 19px;
+    }
+
+    .ttw-contact-page .ttw-form-header p {
+        font-size: 13.5px;
+    }
+
     .ttw-contact-page .ttw-form-row {
         grid-template-columns: 1fr;
         gap: 0;
     }
 
-    .ttw-contact-page .ttw-form-wrapper {
-        padding: 24px 20px;
+    .ttw-contact-page .ttw-input-wrap input[type="text"],
+    .ttw-contact-page .ttw-input-wrap input[type="tel"],
+    .ttw-contact-page .ttw-input-wrap input {
+        height: 46px;
+        font-size: 14px;
+    }
+
+    .ttw-contact-page .ttw-textarea-wrap textarea {
+        font-size: 14px;
+        min-height: 110px;
+    }
+
+    .ttw-contact-page .ttw-submit-btn {
+        padding: 15px 20px;
+        font-size: 14.5px;
     }
 
     .ttw-contact-page .ttw-contact-card {
-        padding: 24px 20px;
+        padding: 24px 18px;
+        border-radius: 14px;
+    }
+
+    .ttw-contact-page .ttw-card-heading {
+        font-size: 17px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .ttw-contact-page .ttw-phone-big {
+        font-size: 24px;
+    }
+
+    .ttw-contact-page .ttw-action-buttons {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .ttw-contact-page .ttw-btn {
+        padding: 12px 16px;
+        font-size: 13.5px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .ttw-contact-page .ttw-phone-big {
+        font-size: 21px;
+    }
+
+    .ttw-contact-page .ttw-hotline-highlight {
+        padding: 16px 16px;
     }
 }
 
