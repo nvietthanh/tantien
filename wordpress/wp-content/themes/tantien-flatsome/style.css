@@ -1330,11 +1330,13 @@ body.admin-bar .ttw-products-hero {
         -webkit-overflow-scrolling: touch;
         margin-bottom: 6px;
         padding-bottom: 4px;
-        scrollbar-width: none; /* Ẩn scrollbar thô */
+        scrollbar-width: none;
+        /* Ẩn scrollbar thô */
     }
 
     .ttw-category-nav::-webkit-scrollbar {
-        display: none; /* Ẩn scrollbar Chrome/Safari */
+        display: none;
+        /* Ẩn scrollbar Chrome/Safari */
     }
 
     .ttw-category-list {
@@ -1387,14 +1389,13 @@ body.admin-bar .ttw-products-hero {
 /* 9.3 Product Grid (Bento/Card Style) */
 .ttw-product-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
 }
 
 .ttw-card-bento {
     border-radius: 8px;
-    border: 1px solid rgba(190, 200, 210, 0.4);
-    background: #0F172A;
+    border: 1px solid rgba(190, 200, 210, 0.5);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -1436,49 +1437,50 @@ body.admin-bar .ttw-products-hero {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 24px 20px;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.4) 28%, rgba(0, 0, 0, 0) 50%);
+    padding: 18px 16px;
+    background: none;
     transition: background 0.35s ease;
     z-index: 2;
+    pointer-events: none;
 }
 
 .ttw-card-bento:hover .ttw-card-overlay {
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 101, 145, 0.5) 35%, rgba(0, 0, 0, 0) 60%);
+    background: none;
 }
 
 .ttw-card-meta {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 .ttw-card-tag {
     background: #006591;
     color: #FFFFFF !important;
     font-family: "Montserrat", sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     padding: 5px 12px;
     border-radius: 4px;
     display: inline-flex;
     align-self: flex-start;
     line-height: 1.2;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .ttw-card-title {
     font-family: "Montserrat", sans-serif;
-    font-size: 19px;
-    font-weight: 800;
+    font-size: 18px;
+    font-weight: 700;
     line-height: 1.35;
     color: #FFFFFF !important;
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .ttw-card-title a {
@@ -1581,22 +1583,8 @@ body.admin-bar .ttw-products-hero {
 
 @media (min-width: 1536px) {
     .ttw-product-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 28px;
-    }
-}
-
-@media (max-width: 960px) {
-    .ttw-product-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 20px;
-    }
-}
-
-@media (max-width: 640px) {
-    .ttw-product-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 22px;
     }
 
     .ttw-card-overlay {
@@ -1604,12 +1592,57 @@ body.admin-bar .ttw-products-hero {
     }
 
     .ttw-card-title {
-        font-size: 16.5px;
+        font-size: 17.5px;
     }
 
     .ttw-card-tag {
-        font-size: 10px;
-        padding: 4px 10px;
+        font-size: 11.5px;
+        padding: 4px 11px;
+    }
+}
+
+@media (max-width: 960px) {
+    .ttw-product-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .ttw-card-overlay {
+        padding: 14px 12px;
+    }
+
+    .ttw-card-title {
+        font-size: 14px;
+    }
+
+    .ttw-card-tag {
+        font-size: 9.5px;
+        padding: 3px 8px;
+    }
+}
+
+@media (max-width: 640px) {
+    .ttw-product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .ttw-card-overlay {
+        padding: 10px 8px;
+    }
+
+    .ttw-card-meta {
+        margin-bottom: 4px;
+    }
+
+    .ttw-card-title {
+        font-size: 12.5px;
+        line-height: 1.3;
+    }
+
+    .ttw-card-tag {
+        font-size: 8.5px;
+        padding: 2px 6px;
     }
 }
 
@@ -2708,6 +2741,121 @@ body.ux-builder-iframe .ttw-product-detail-page,
     background: var(--ttw-primary, #006591);
 }
 
+/* Navigation Buttons for Product Gallery Slider */
+.ttw-pd-slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) scale(0.92);
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.92);
+    color: #0F172A;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer;
+    z-index: 10;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    box-sizing: border-box !important;
+}
+
+.ttw-pd-slider-btn svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    flex-shrink: 0;
+}
+
+/* PC: Hover vào ảnh mới hiển thị button */
+.ttw-pd-main-img-wrap:hover .ttw-pd-slider-btn {
+    opacity: 0.9;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+}
+
+.ttw-pd-slider-btn:hover {
+    background: var(--ttw-primary, #006591);
+    color: #FFFFFF;
+    border-color: var(--ttw-primary, #006591);
+    opacity: 1 !important;
+    transform: translateY(-50%) scale(1.1) !important;
+    box-shadow: 0 6px 18px rgba(0, 101, 145, 0.35);
+}
+
+.ttw-pd-slider-prev {
+    left: 2px;
+}
+
+.ttw-pd-slider-next {
+    right: 2px;
+}
+
+/* Smartphone / Mobile: Luôn hiển thị và đảm bảo nút tròn tuyệt đối */
+@media (max-width: 768px), (hover: none) {
+    .ttw-pd-slider-btn {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
+        border-radius: 50% !important;
+        opacity: 0.92 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        transform: translateY(-50%) scale(1) !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+        box-sizing: border-box !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+
+    .ttw-pd-slider-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .ttw-pd-slider-prev {
+        left: 2px;
+    }
+
+    .ttw-pd-slider-next {
+        right: 2px;
+    }
+}
+
+.ttw-pd-main-img-wrap img.ttw-img-fade {
+    animation: ttwGalleryFade 0.22s ease-out;
+}
+
+@keyframes ttwGalleryFade {
+    0% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
 /* Lightbox Modal Fullscreen Premium */
 .ttw-lightbox-modal {
     position: fixed;
@@ -3430,25 +3578,35 @@ body.ux-builder-iframe .ttw-product-detail-page,
 
 .ttw-pd-related-grid {
     display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 18px;
 }
 
-@media (min-width: 640px) {
+@media (max-width: 1200px) {
     .ttw-pd-related-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 16px;
+    }
+
+    .ttw-pd-related-grid .ttw-card-bento:nth-child(n+5) {
+        display: none !important;
     }
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 768px) {
     .ttw-pd-related-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px;
+    }
+
+    .ttw-pd-related-grid .ttw-card-bento:nth-child(n+5) {
+        display: none !important;
     }
 }
 
 /* Hover effects cho Bento Product Cards trong Sản Phẩm Tương Tự */
 .ttw-pd-related-grid .ttw-card-bento {
-    background: #0F172A;
+    background: #FFFFFF;
 }
 
 /* 15.5 Load Animations khi vào trang cho các mục Content */
@@ -3502,6 +3660,10 @@ body.ux-builder-iframe .ttw-product-detail-page,
 
 .ttw-pd-related-grid .ttw-card-bento:nth-child(4) {
     animation-delay: 0.86s;
+}
+
+.ttw-pd-related-grid .ttw-card-bento:nth-child(5) {
+    animation-delay: 0.98s;
 }
 
 
@@ -3610,7 +3772,7 @@ body.admin-bar .ttw-news-hero {
 }
 
 .ttw-page-tin-tuc .ttw-page-inner-container {
-   padding: 30px clamp(16px, 3.5vw, 60px) 80px
+    padding: 30px clamp(16px, 3.5vw, 60px) 80px
 }
 
 .ttw-single-page-wrap {
@@ -6380,6 +6542,7 @@ body.home .ttw-header.scrolled .ttw-nav ul:not(.sub-menu)>li>a::after {
         grid-template-columns: repeat(3, 1fr);
         gap: 12px;
     }
+
     .ttw-showcase {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -7975,15 +8138,45 @@ html.ttw-reveal-ready:not(.ux-builder-active) .ttw-animate-children:not(.ttw-in-
         padding: 16px;
     }
 
-    /* Feature Cards */
+    /* Feature Cards (Smartphone: icon lên đầu và căn giữa) */
     .ttw-feature-card {
-        padding: 14px 16px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 18px 16px;
         gap: 12px;
+        border-radius: 12px;
+    }
+
+    .ttw-feature-card:hover {
+        transform: translateY(-3px);
     }
 
     .ttw-feature-icon {
-        width: 32px;
-        height: 32px;
+        width: 44px;
+        height: 44px;
+        font-size: 30px;
+        margin: 0 auto;
+    }
+
+    .ttw-feature-icon img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .ttw-feature-text {
+        width: 100%;
+        text-align: center;
+    }
+
+    .ttw-feature-text h4 {
+        margin: 0 0 6px 0;
+        text-align: center;
+    }
+
+    .ttw-feature-text p {
+        text-align: center;
+        line-height: 1.55;
     }
 
     /* CTA Card */
@@ -8597,6 +8790,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
         gap: 28px;
     }
 }
+
 @media (max-width: 1024px) {
     .ttw-quote-page .ttw-quote-hero {
         padding: 40px clamp(16px, 3.5vw, 40px) 24px;
@@ -9652,7 +9846,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 /* Xử lý khi UXBuilder chèn p bao bọc */
-.ttw-culture-contact-band .ttw-contact-cta-card > p {
+.ttw-culture-contact-band .ttw-contact-cta-card>p {
     margin: 0 !important;
     padding: 0 !important;
     width: 100%;
@@ -9662,8 +9856,8 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 /* Nếu thẻ a bị tách làm 2 (thẻ a rỗng ở trên và thẻ a trong p ở dưới) */
-.ttw-culture-contact-band .ttw-contact-cta-card > a.ttw-cta-phone-btn:first-of-type:not(:last-of-type),
-.ttw-culture-contact-band .ttw-contact-cta-card:has(p a.ttw-cta-phone-btn) > a.ttw-cta-phone-btn {
+.ttw-culture-contact-band .ttw-contact-cta-card>a.ttw-cta-phone-btn:first-of-type:not(:last-of-type),
+.ttw-culture-contact-band .ttw-contact-cta-card:has(p a.ttw-cta-phone-btn)>a.ttw-cta-phone-btn {
     display: none !important;
 }
 
@@ -9725,7 +9919,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 /* 1. Nếu wpautop sinh ra cấu trúc bọc <p>, xử lý <p> thành flex item chuẩn */
-.ttw-culture-contact-band .ttw-cta-social-group > p {
+.ttw-culture-contact-band .ttw-cta-social-group>p {
     flex: 1 1 0 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -9736,7 +9930,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 /* 2. Style nút mạng xã hội (cả khi là con trực tiếp hoặc con trong thẻ p) */
 .ttw-culture-contact-band .ttw-social-btn,
 .ttw-culture-contact-band .ttw-cta-social-group a.ttw-social-btn,
-.ttw-culture-contact-band .ttw-cta-social-group > p > a {
+.ttw-culture-contact-band .ttw-cta-social-group>p>a {
     flex: 1 1 0 !important;
     width: 100%;
     min-width: 0;
@@ -9760,7 +9954,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 .ttw-culture-contact-band .ttw-social-btn span,
-.ttw-culture-contact-band .ttw-cta-social-group > p > a span {
+.ttw-culture-contact-band .ttw-cta-social-group>p>a span {
     display: inline-block;
 }
 
@@ -9788,7 +9982,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 
 .ttw-culture-contact-band .ttw-social-btn:hover,
 .ttw-culture-contact-band .ttw-cta-social-group a.ttw-social-btn:hover,
-.ttw-culture-contact-band .ttw-cta-social-group > p > a:hover {
+.ttw-culture-contact-band .ttw-cta-social-group>p>a:hover {
     background: #FFFFFF !important;
     color: #006591 !important;
     border-color: #FFFFFF !important;
@@ -10513,7 +10707,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
     padding: 16px 18px;
     margin-bottom: 16px;
     position: relative;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     border-left: 4px solid #64748B;
 }
 
@@ -10913,6 +11107,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 @media (max-width: 1024px) {
+
     .uxb-content .ttw-warranty-container,
     .ux-builder-active .ttw-warranty-container {
         padding-left: clamp(24px, 5vw, 60px) !important;
@@ -10935,6 +11130,7 @@ body.admin-bar .ttw-quote-page .ttw-quote-hero {
 }
 
 @media (max-width: 768px) {
+
     .uxb-content .ttw-warranty-container,
     .ux-builder-active .ttw-warranty-container {
         padding-left: 16px !important;

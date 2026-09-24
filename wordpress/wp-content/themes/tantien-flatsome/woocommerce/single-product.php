@@ -51,12 +51,28 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 				}
 
 				$attachment_ids = $product ? $product->get_gallery_image_ids() : array();
-				if ( empty( $attachment_ids ) && $main_img_id ) {
+				if ( $main_img_id && ! in_array( $main_img_id, $attachment_ids ) ) {
+					array_unshift( $attachment_ids, $main_img_id );
+				} elseif ( empty( $attachment_ids ) && $main_img_id ) {
 					$attachment_ids = array( $main_img_id );
 				}
 				?>
 				<div class="ttw-pd-main-img-wrap" id="ttw-pd-main-wrap" title="Nhấp để xem ảnh đầy đủ">
 					<img id="ttw-pd-main-image" src="<?php echo esc_url( $main_img_url ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>" />
+
+					<?php if ( count( $attachment_ids ) > 1 ) : ?>
+						<button type="button" class="ttw-pd-slider-btn ttw-pd-slider-prev" id="ttw-pd-slider-prev" aria-label="Ảnh trước" title="Ảnh trước">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M15 18l-6-6 6-6"/>
+							</svg>
+						</button>
+						<button type="button" class="ttw-pd-slider-btn ttw-pd-slider-next" id="ttw-pd-slider-next" aria-label="Ảnh tiếp theo" title="Ảnh tiếp theo">
+							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M9 18l6-6-6-6"/>
+							</svg>
+						</button>
+					<?php endif; ?>
+
 					<div class="ttw-pd-zoom-hint" aria-hidden="true">
 						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<circle cx="11" cy="11" r="8"></circle>
@@ -223,7 +239,7 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 		$rel_args = array(
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => 4,
+			'posts_per_page' => 5,
 			'post__not_in'   => array( get_the_ID() ),
 			'orderby'        => 'rand',
 		);
@@ -373,31 +389,97 @@ if ( ! is_a( $product, 'WC_Product' ) ) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	// 1. Gallery Thumbnail Switcher
+	// 1. Gallery Thumbnail Switcher & Autoplay Slider (1s)
 	const mainImg = document.getElementById('ttw-pd-main-image');
 	const mainWrap = document.getElementById('ttw-pd-main-wrap');
+	const btnSliderPrev = document.getElementById('ttw-pd-slider-prev');
+	const btnSliderNext = document.getElementById('ttw-pd-slider-next');
 	const thumbs = Array.from(document.querySelectorAll('.ttw-pd-thumb-item'));
 	let currentIndex = 0;
-	
+	let autoplayTimer = null;
+	const AUTOPLAY_INTERVAL = 3000; // Tự động nhảy ảnh sau 1 giây
+
 	function setActiveThumb(index) {
-		if (index >= 0 && index < thumbs.length) {
-			currentIndex = index;
-			thumbs.forEach(t => t.classList.remove('active'));
+		if (thumbs.length === 0) return;
+		if (index < 0) {
+			index = thumbs.length - 1;
+		} else if (index >= thumbs.length) {
+			index = 0;
+		}
+		currentIndex = index;
+		thumbs.forEach(t => t.classList.remove('active'));
+		if (thumbs[index]) {
 			thumbs[index].classList.add('active');
 			const fullUrl = thumbs[index].getAttribute('data-full');
 			if (fullUrl && mainImg) {
+				mainImg.classList.remove('ttw-img-fade');
+				void mainImg.offsetWidth;
 				mainImg.src = fullUrl;
+				mainImg.classList.add('ttw-img-fade');
 			}
 		}
+	}
+
+	function nextSlide() {
+		if (thumbs.length > 1) {
+			setActiveThumb(currentIndex + 1);
+		}
+	}
+
+	function prevSlide() {
+		if (thumbs.length > 1) {
+			setActiveThumb(currentIndex - 1);
+		}
+	}
+
+	function startAutoplay() {
+		if (autoplayTimer || thumbs.length <= 1) return;
+		autoplayTimer = setInterval(nextSlide, AUTOPLAY_INTERVAL);
+	}
+
+	function pauseAutoplay() {
+		if (autoplayTimer) {
+			clearInterval(autoplayTimer);
+			autoplayTimer = null;
+		}
+	}
+
+	function restartAutoplay() {
+		pauseAutoplay();
+		startAutoplay();
+	}
+
+	if (btnSliderPrev) {
+		btnSliderPrev.addEventListener('click', function(e) {
+			e.stopPropagation();
+			prevSlide();
+			restartAutoplay();
+		});
+	}
+
+	if (btnSliderNext) {
+		btnSliderNext.addEventListener('click', function(e) {
+			e.stopPropagation();
+			nextSlide();
+			restartAutoplay();
+		});
 	}
 
 	if (thumbs.length > 0) {
 		thumbs.forEach(function(thumb, idx) {
 			thumb.addEventListener('click', function() {
 				setActiveThumb(idx);
+				restartAutoplay();
 			});
 		});
 	}
+
+	if (mainWrap) {
+		mainWrap.addEventListener('mouseenter', pauseAutoplay);
+		mainWrap.addEventListener('mouseleave', startAutoplay);
+	}
+
+	startAutoplay();
 
 	// 2. Advanced Lightbox Modal
 	const lightbox = document.getElementById('ttw-image-lightbox');
@@ -464,6 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	function openLightbox() {
+		pauseAutoplay();
 		if (lightbox && mainImg) {
 			updateLightboxImage();
 			lightbox.classList.add('active');
@@ -478,6 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			lightbox.setAttribute('aria-hidden', 'true');
 			document.body.style.overflow = '';
 			resetTransform();
+			startAutoplay();
 		}
 	}
 

@@ -1211,15 +1211,15 @@ add_action( 'ux_builder_setup', function() {
 				'type'        => 'slider',
 				'heading'     => __( 'Số lượng sản phẩm hiển thị / trang' ),
 				'description' => __( 'Kéo chọn số lượng sản phẩm hiển thị trên 1 trang.' ),
-				'default'     => '6',
-				'max'         => '24',
-				'min'         => '3',
-				'step'        => '3',
+				'default'     => '20',
+				'max'         => '40',
+				'min'         => '4',
+				'step'        => '2',
 			),
 			'posts_per_page' => array(
 				'type'    => 'textfield',
 				'heading' => __( 'Hoặc nhập số lượng' ),
-				'default' => '6',
+				'default' => '20',
 			),
 			'orderby' => array(
 				'type'    => 'select',
@@ -3037,15 +3037,23 @@ function ttw_register_shortcodes() {
 	// Shortcode Product Archive (Danh sách sản phẩm bento + lọc DB + phân trang)
 	add_shortcode( 'ttw_product_archive', function( $atts ) {
 		$a = shortcode_atts( array(
-			'posts_per_page' => '6',
-			'count'          => '',
+			'posts_per_page' => '20',
+			'count'          => '20',
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 		), $atts );
 
-		$per_page = ! empty( $a['count'] ) ? intval( $a['count'] ) : intval( $a['posts_per_page'] );
-		if ( $per_page <= 0 ) {
-			$per_page = 6;
+		$per_page = 20;
+		if ( ! empty( $a['count'] ) ) {
+			$val = intval( $a['count'] );
+			if ( $val > 0 && 12 !== $val && 6 !== $val ) {
+				$per_page = $val;
+			}
+		} elseif ( ! empty( $a['posts_per_page'] ) ) {
+			$val = intval( $a['posts_per_page'] );
+			if ( $val > 0 && 12 !== $val && 6 !== $val ) {
+				$per_page = $val;
+			}
 		}
 
 		$ttw_paged    = ttw_get_current_paged();
