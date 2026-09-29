@@ -1973,7 +1973,7 @@ function ttw_register_shortcodes() {
 
 		$cat_args = array(
 			'taxonomy'   => 'product_cat',
-			'hide_empty' => true,
+			'hide_empty' => false,
 			'orderby'    => sanitize_key( $a['orderby'] ),
 			'order'      => strtoupper( sanitize_key( $a['order'] ) ),
 		);
@@ -2066,30 +2066,9 @@ function ttw_register_shortcodes() {
 							$term_title = html_entity_decode( $term->name, ENT_QUOTES, 'UTF-8' );
 							$p_count    = $term->count;
 
-							// Lấy hình ảnh tiêu biểu cho danh mục
+							// Lấy hình ảnh tiêu biểu cho danh mục (từ thiết lập ảnh danh mục)
 							$thumb_id = get_term_meta( $term->term_id, 'thumbnail_id', true );
 							$cat_img  = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium_large' ) : '';
-
-							if ( ! $cat_img ) {
-								$latest_p = new WP_Query( array(
-									'post_type'      => 'product',
-									'post_status'    => 'publish',
-									'posts_per_page' => 1,
-									'no_found_rows'  => true,
-									'tax_query'      => array(
-										array(
-											'taxonomy' => 'product_cat',
-											'field'    => 'term_id',
-											'terms'    => $term->term_id,
-										),
-									),
-								) );
-								if ( $latest_p->have_posts() ) {
-									$latest_p->the_post();
-									$cat_img = get_the_post_thumbnail_url( get_the_ID(), 'medium_large' );
-								}
-								wp_reset_postdata();
-							}
 
 							if ( ! $cat_img ) {
 								$cat_img = get_stylesheet_directory_uri() . '/assets/img/placeholder.svg';
